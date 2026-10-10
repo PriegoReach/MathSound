@@ -1,5 +1,5 @@
 // Motor de audio con Web Audio API: todo es síntesis, no se usan samples.
-//   melodía → melIn → distorsión → melBus → sección → duck ─┬→ master → paso alto (build-up) → compresor → salida
+//   melodía → melIn → distorsión → melBus → sección → duck ─┬→ master → paso alto (build-up) → compresor → seguro → salida
 //                                                 ├→ reverb
 //                                                 └→ delay
 //   batería → drumIn → distorsión → filtro → drumBus → master (+ un poco de reverb)
@@ -20,6 +20,17 @@
     for (let i = 0; i < n; i++) {
       const x = (i / (n - 1)) * 2 - 1;
       c[i] = k ? ((1 + k) * x) / (1 + k * Math.abs(x)) : x;
+    }
+    return c;
+  }
+
+  // Seguro de la salida: hasta 0,8 (−2 dBFS) deja la señal igual; por encima redondea los picos y nunca
+  // pasa de 1 (0 dBFS), así nada se recorta de golpe. Entra a la mitad: la curva cubre de −2 a 2.
+  function softClipCurve() {
+    const n = 2048, c = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+      const u = ((i / (n - 1)) * 2 - 1) * 2, a = Math.abs(u);
+      c[i] = Math.sign(u) * (a < 0.8 ? a : 0.8 + 0.2 * Math.tanh((a - 0.8) / 0.2));
     }
     return c;
   }
@@ -61,10 +72,15 @@
       this.comp.ratio.value = 4;
       this.comp.attack.value = 0.003;
       this.comp.release.value = 0.2;
-      this.comp.connect(ctx.destination);
+      // seguro final: el compresor no frena los picos del drop ni de los bombos saturados
+      this.clip = ctx.createWaveShaper();
+      this.clip.curve = softClipCurve();
+      this.clip.oversample = '4x';
+      this.comp.connect(gain(0.5, this.clip));
+      this.clip.connect(ctx.destination);
       if (ctx.createMediaStreamDestination) {
         this.recDest = ctx.createMediaStreamDestination();
-        this.comp.connect(this.recDest);
+        this.clip.connect(this.recDest);
       }
       // paso alto de todo el mix: transparente (10 Hz) salvo durante un build-up
       this.buildHP = ctx.createBiquadFilter();
@@ -521,6 +537,9 @@
       const bp = ctx.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 10000; bp.Q.value = 0.7;
       const h = ctx.createBiquadFilter(); h.type = 'highpass'; h.frequency.value = hp;
       const g = ctx.createGain();
+      // en silencio hasta el golpe: los osciladores ya suenan, y antes del primer evento la ganancia valdría
+      // 1 (se oía un siseo metálico desde que se programaba el golpe hasta que sonaba)
+      g.gain.value = 0;
       g.gain.setValueAtTime(0.0001, t);
       g.gain.exponentialRampToValueAtTime(v, t + 0.002);
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
