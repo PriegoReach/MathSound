@@ -159,6 +159,11 @@ Todo es síntesis, sin samples ([js/instruments.js](js/instruments.js)):
 
 **Distorsión** satura la melodía; algunos instrumentos (cencerro, 808, ácido) ya traen un poco.
 
+**Estéreo**: bombo, caja, bajo y melodía van al centro. Las sierras desafinadas del supersaw, el pad, el
+lead y el coro se abren a los lados; los hats van un poco a la derecha y la percusión a la izquierda; el
+delay rebota entre izquierda y derecha, y las voces de los acordes se reparten por todo el estéreo (en el
+abanico salen del centro hacia su lado, y en la espiral las dos voces giran también entre los altavoces).
+
 ## Funciones aleatorias
 
 No son árboles de operaciones al azar (sonarían a ruido), sino combinaciones de "familias" con estructura

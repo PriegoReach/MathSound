@@ -29,7 +29,7 @@
   // Instrumentos sostenidos que suenan bien como acordes, y cuánto se bajan los que como acorde
   // suenan más fuertes que el resto (medido en RMS con varias voces)
   const INSTS = ['pad', 'videoSaw', 'supersaw', 'synth', 'organ', 'choir', 'sine', 'lead', 'chip'];
-  const TRIM = { synth: 0.55, organ: 0.65, choir: 0.85, sine: 0.5, lead: 0.8 };
+  const TRIM = { pad: 0.85, supersaw: 0.85, synth: 0.55, organ: 0.65, choir: 0.7, sine: 0.5, lead: 0.8 };
 
   // Las escalas de 5 o 6 notas no forman acordes por terceras: se usa una de 7 notas que las contiene
   const PARENT = { 'Pentatónica menor': 'Menor natural', 'Pentatónica mayor': 'Mayor', 'Blues': 'Menor natural',
@@ -144,6 +144,13 @@
     return base + iv[idx % 3] + 12 * Math.floor(idx / 3);
   }
 
+  // Lugar de cada voz en el estéreo: la grave al centro; las demás alternan izquierda y derecha, cada vez
+  // más abiertas hacia el agudo
+  function panSpread(n) {
+    const k = n - 1;
+    return [0, ...Array.from({ length: k }, (_, j) => (j % 2 ? 1 : -1) * (0.2 + (0.55 * j) / Math.max(1, k - 1)))];
+  }
+
   // Espiral: progreso u de 0 a 1. Empieza separada `A` semitonos del centro, gira cada vez más deprisa
   // (de 1,5 a 7,5 vueltas por espiral) y el radio se cierra hasta cero.
   const spiralPhase = (u) => Math.PI / 2 + 2 * Math.PI * (1.5 * u + 3 * u * u);
@@ -188,15 +195,16 @@
       this.vlines = [];   // línea de cada voz que suena
       this.lines = [];    // líneas para dibujar, también las de voces ya apagadas
       this.inst = null;
+      this.pans = [];     // paneo de cada voz (ver panSpread)
       this.spiral = null; // espiral programada (hasta el abanico)
       this.drawn = null;  // última espiral, para dibujarla
     }
 
     get on() { return this.voices.length > 0; }
 
-    voice(t, m, inst, gain) {
+    voice(t, m, inst, gain, pan = 0) {
       const I = MS.INSTRUMENTS[inst]?.voice ? MS.INSTRUMENTS[inst] : MS.INSTRUMENTS.pad;
-      return I.voice(this.E, t, music.mtof(m), { dest: this.E.chordIn, gain: gain * (TRIM[inst] ?? 1) });
+      return I.voice(this.E, t, music.mtof(m), { dest: this.E.chordIn, gain: gain * (TRIM[inst] ?? 1), pan });
     }
 
     line(b, m) {
@@ -205,11 +213,13 @@
       return L;
     }
 
-    // Voces nuevas desde t (pulso b) en las notas `notes`; las que sonaban se apagan
-    start(t, b, notes, inst, gain) {
+    // Voces nuevas desde t (pulso b) en las notas `notes`; las que sonaban se apagan.
+    // `pan0`: si se indica, todas empiezan en ese paneo (el abanico las abre luego)
+    start(t, b, notes, inst, gain, pan0) {
       this.stop(t, b);
       this.inst = inst;
-      this.voices = notes.map((m) => this.voice(t, m, inst, gain));
+      this.pans = panSpread(notes.length);
+      this.voices = notes.map((m, i) => this.voice(t, m, inst, gain, pan0 ?? this.pans[i]));
       this.notes = [...notes];
       this.vlines = notes.map((m) => this.line(b, m));
     }
@@ -234,10 +244,16 @@
       this.stop(t0, b0);
       const D = t1 - t0, K = Math.max(40, Math.round(D * 60));
       const S = { t0, t1, b0, b1, center, A, voices: [] };
+      // las dos voces son los dos puntos opuestos del círculo: la altura es el seno del ángulo y el
+      // paneo, el coseno, así que también giran entre izquierda y derecha
       for (const sg of [1, -1]) {
         const at = (u) => center + sg * spiralRadius(A, u) * Math.sin(spiralPhase(u));
-        const v = this.voice(t0, at(0), inst, gain);
-        for (let k = 1; k <= K; k++) v.set(t0 + (D * k) / K, music.mtof(at(k / K)));
+        const side = (u) => (0.85 * sg * spiralRadius(A, u) * Math.cos(spiralPhase(u))) / A;
+        const v = this.voice(t0, at(0), inst, gain, side(0));
+        for (let k = 1; k <= K; k++) {
+          v.set(t0 + (D * k) / K, music.mtof(at(k / K)));
+          v.pan.linearRampToValueAtTime(side(k / K), t0 + (D * k) / K);
+        }
         v.stop(t1 + 0.04, 0.12);
         S.voices.push(v);
       }
@@ -252,11 +268,13 @@
       return { center: S.center, r: spiralRadius(S.A, u), phi: spiralPhase(u) };
     }
 
-    // Abanico: en t (pulso b) las voces salen juntas del centro de la espiral hacia `targets`
+    // Abanico: en t (pulso b) las voces salen juntas del centro de la espiral hacia `targets`, y del
+    // centro del estéreo hacia su lado
     fanOut(t, b, targets, dur, db, inst, gain) {
       const c = this.spiral ? this.spiral.center : targets[targets.length >> 1];
       this.spiral = null;
-      this.start(t, b, targets.map(() => c), inst, gain);
+      this.start(t, b, targets.map(() => c), inst, gain, 0);
+      this.voices.forEach((v, i) => { v.pan.setValueAtTime(0, t); v.pan.linearRampToValueAtTime(this.pans[i], t + dur); });
       this.glide(t, b, targets, dur, db);
     }
 

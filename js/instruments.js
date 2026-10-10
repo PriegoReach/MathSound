@@ -1,6 +1,8 @@
 // Instrumentos de la melodía: cada uno es una pequeña receta de síntesis (Web Audio, sin samples).
 //   sustain: true  → puede sonar como glissando continuo: voice(E, t, f, o) → { set(t, f), curve(…), stop(t) }
-//                    o (opcional) = { dest: nodo de salida (por defecto E.melIn), gain: volumen relativo }
+//                    o (opcional) = { dest: nodo de salida (por defecto E.melIn), gain: volumen relativo,
+//                                     pan: paneo de la voz entera, de −1 a 1 }
+//   En las capas, `pan` abre en estéreo los osciladores desafinados (supersaw, pad, lead, coro).
 //   sustain: false → percusivo: en modo glissando se repite en cada subdivisión
 //   hit(E, t, f, dur, v) toca una nota suelta (modos escala, pasos y ritmo)
 //   drive: distorsión propia del instrumento (se suma a la del control "Distorsión")
@@ -49,19 +51,28 @@
     return g;
   }
 
-  // Voz sostenida hecha de capas de osciladores: { type, ratio, detune, gain }.
-  // Sirve para el glissando, para las voces de los acordes (o.dest) y, con stop programado, para notas sueltas.
+  // Voz sostenida hecha de capas de osciladores: { type, ratio, detune, gain, pan }.
+  // Sirve para el glissando, para las voces de los acordes (o.dest, o.pan) y, con stop programado, para
+  // notas sueltas.
   function layered(E, t, f, spec, o = {}) {
     const ctx = E.ctx, level = spec.level * (o.gain ?? 1), attack = spec.attack ?? 0.05;
+    const aux = []; // resto de nodos de la voz (paneos, formantes, LFO): se liberan al apagarla
+    const panned = (pan, to, mono) => { const P = E.stereo(pan, to, mono); aux.push(...P.nodes); return P; };
     const out = ctx.createGain();
     out.gain.setValueAtTime(0, t);
     out.gain.linearRampToValueAtTime(level, t + attack);
     const onepole = spec.filter?.type === 'onepole'; // paso bajo suave de 6 dB por octava, compartido
-    out.connect(onepole ? E.onePole(o.dest || E.melIn, spec.filter.f) : o.dest || E.melIn);
+    let target = onepole ? E.onePole(o.dest || E.melIn, spec.filter.f) : o.dest || E.melIn;
+    let pan = null;
+    if (o.pan !== undefined) { // si alguna capa ya va paneada, la voz llega en estéreo
+      const P = panned(o.pan, target, !spec.layers.some((L) => L.pan));
+      target = P.input;
+      pan = P.pan;
+    }
+    out.connect(target);
 
     let dest = out;
     const filters = [];
-    const aux = []; // resto de nodos de la voz (formantes, LFO): se liberan al apagarla
     if (spec.filter && !onepole) {
       const fl = ctx.createBiquadFilter();
       fl.type = spec.filter.type; fl.frequency.value = spec.filter.f; fl.Q.value = spec.filter.q ?? 0.7;
@@ -85,7 +96,7 @@
     const oscs = spec.layers.map((L) => {
       const o = makeOsc(E, L.type, f * (L.ratio || 1), t, L.detune || 0);
       const g = ctx.createGain(); g.gain.value = L.gain ?? 1;
-      o.connect(g).connect(dest);
+      o.connect(g).connect(L.pan ? panned(L.pan, dest).input : dest);
       return { o, ratio: L.ratio || 1, g };
     });
     const extra = [];
@@ -106,6 +117,7 @@
     }
 
     return {
+      pan, // AudioParam del paneo de la voz (null si no se paneó)
       set(t1, f1) { for (const x of oscs) x.o.frequency.linearRampToValueAtTime(f1 * x.ratio, t1); },
       // tono a velocidad de audio: una curva de frecuencias muy densa entre t1 y t1 + dur
       // Se usan puntos con rampa lineal (unos 300 por segundo) y no setValueCurveAtTime:
@@ -154,7 +166,7 @@
       const nodes = [fl];
       for (const L of spec.layers) {
         const o = makeOsc(E, L.type, f * (L.ratio || 1), t, L.detune || 0);
-        o.connect(fl);
+        if (L.pan) { const P = E.stereo(L.pan, fl); nodes.push(...P.nodes); o.connect(P.input); } else o.connect(fl);
         o.stop(t + d + 0.05);
         nodes.push(o);
       }
@@ -241,8 +253,9 @@
     }
   }
 
-  // Siete sierras desafinadas entre sí: el sonido ancho del trance y el hardstyle
-  const SAWS = (cents, side) => cents.map((d) => ({ type: 'sawtooth', detune: d, gain: d ? side : 1 }));
+  // Siete sierras desafinadas entre sí: el sonido ancho del trance y el hardstyle. Cuanto más
+  // desafinada, más hacia un lado
+  const SAWS = (cents, side) => cents.map((d) => ({ type: 'sawtooth', detune: d, gain: d ? side : 1, pan: d / 32 }));
 
   const VOWEL_A = [[730, 4, 9], [1090, 2.2, 11], [2440, 1.2, 13]]; // [frecuencia, ganancia, Q]
 
@@ -252,15 +265,15 @@
     videoSaw: { layers: [{ type: 'sawtooth' }], filter: { type: 'onepole', f: 1200 }, level: 0.45, attack: 0.01 },
     synth: { layers: [{ type: 'triangle' }, { type: 'triangle', detune: 7, gain: 0.5 }], filter: { type: 'lowpass', f: 4500 }, level: 0.5 },
     sine: { layers: [{ type: 'sine' }], level: 0.55 },
-    lead: { layers: [{ type: 'sawtooth' }, { type: 'sawtooth', detune: 9, gain: 0.7 }, { type: 'sawtooth', detune: -9, gain: 0.7 }], filter: { type: 'lowpass', f: 3200, q: 1 }, level: 0.34 },
+    lead: { layers: [{ type: 'sawtooth' }, { type: 'sawtooth', detune: 9, gain: 0.7, pan: 0.4 }, { type: 'sawtooth', detune: -9, gain: 0.7, pan: -0.4 }], filter: { type: 'lowpass', f: 3200, q: 1 }, level: 0.34 },
     chip: { layers: [{ type: 'pulse25' }], level: 0.4, attack: 0.004 },
     organ: { layers: [{ type: 'organ' }], vibrato: 6, vibratoRate: 6.5, level: 0.5, attack: 0.015 },
-    choir: { layers: [{ type: 'sawtooth' }, { type: 'sawtooth', detune: 12 }, { type: 'sawtooth', detune: -12 }], formants: VOWEL_A, vibrato: 14, vibratoRate: 5, level: 0.27, attack: 0.09 },
+    choir: { layers: [{ type: 'sawtooth' }, { type: 'sawtooth', detune: 12, pan: 0.45 }, { type: 'sawtooth', detune: -12, pan: -0.45 }], formants: VOWEL_A, vibrato: 14, vibratoRate: 5, level: 0.27, attack: 0.09 },
     whistle: { layers: [{ type: 'sine' }, { type: 'sine', ratio: 2, gain: 0.04 }], vibrato: 22, vibratoRate: 5.2, level: 0.42, attack: 0.07 },
     acid: { layers: [{ type: 'sawtooth' }], filter: { type: 'lowpass', f: 1300, q: 13 }, wah: 1000, level: 0.2, attack: 0.01 },
     sub808: { layers: [{ type: 'sine', ratio: 0.5 }, { type: 'triangle', ratio: 0.5, gain: 0.25 }], level: 0.33, attack: 0.01 },
     supersaw: { layers: SAWS([-28, -17, -8, 0, 8, 17, 28], 0.6), filter: { type: 'lowpass', f: 5500, q: 0.6 }, level: 0.2, attack: 0.01 },
-    pad: { layers: [{ type: 'sawtooth', detune: -7 }, { type: 'sawtooth', detune: 7 }, { type: 'triangle', ratio: 0.5, gain: 0.6 }],
+    pad: { layers: [{ type: 'sawtooth', detune: -7, pan: -0.5 }, { type: 'sawtooth', detune: 7, pan: 0.5 }, { type: 'triangle', ratio: 0.5, gain: 0.6 }],
       filter: { type: 'lowpass', f: 1400, q: 0.5 }, vibrato: 4, vibratoRate: 4.2, level: 0.26, attack: 0.35, release: 0.9 },
   };
 

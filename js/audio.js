@@ -7,6 +7,8 @@
 //   bajo    → bassIn → distorsión → bassBus → duck → master
 //   acordes → chordIn (chordBus) → duck ─┬→ master                              (voces de js/chords.js)
 //                                        └→ reverb
+// Estéreo: el delay va y vuelve entre izquierda y derecha, los hats y la percusión suenan un poco a los
+// lados, las voces de los acordes se reparten (ver stereo) y bombo, caja, bajo y melodía van al centro.
 // Los timbres de la melodía están en js/instruments.js y los kits de batería en js/drums.js.
 (function (MS) {
   'use strict';
@@ -73,13 +75,22 @@
       this.reverb.buffer = this.impulse(2.6, 3.2);
       this.reverb.connect(this.master);
 
-      this.delay = ctx.createDelay(2);
-      const fb = gain(0.38);
-      const tone = ctx.createBiquadFilter();
-      tone.type = 'lowpass';
-      tone.frequency.value = 2800;
-      this.delay.connect(tone); tone.connect(fb); fb.connect(this.delay);
-      tone.connect(this.master);
+      // delay de ida y vuelta: la primera repetición suena a la izquierda, la segunda a la derecha…
+      // (cada lado lleva √2 porque una repetición en un solo lado se oye 3 dB más baja)
+      const merge = ctx.createChannelMerger(2);
+      merge.connect(this.master);
+      this.delays = [0, 1].map((ch) => {
+        const d = ctx.createDelay(2);
+        const tone = ctx.createBiquadFilter();
+        tone.type = 'lowpass';
+        tone.frequency.value = 2800;
+        d.connect(tone).connect(gain(Math.SQRT2)).connect(merge, 0, ch);
+        return { d, tone };
+      });
+      const [dl, dr] = this.delays;
+      dl.tone.connect(gain(0.38, dr.d));
+      dr.tone.connect(gain(0.38, dl.d));
+      this.delay = dl.d; // entrada del delay
 
       this.melBus = gain(0);
       this.melDuck = gain(1, this.master);
@@ -97,6 +108,10 @@
       this.drumTone.connect(this.drumBus);
       this.drumDrive = this.driveStage(this.drumTone);
       this.drumIn = this.drumDrive.input;
+      // hats y percusión un poco a los lados; bombo y caja al centro (ver drum)
+      this.hitPans = {};
+      for (const [type, pan] of Object.entries({ hat: 0.3, open: 0.3, perc: -0.3 })) this.hitPans[type] = this.stereo(pan, this.drumIn).input;
+      this.hitIn = this.drumIn;
 
       // bombo con cadena propia: saturación y realce grave (≈55 Hz) según el kit
       this.kickEq = ctx.createBiquadFilter();
@@ -179,7 +194,7 @@
         case 'drumVol': smooth(this.drumBus.gain, v); break;
         case 'bassVol': smooth(this.bassBus.gain, v * 0.8); break;
         case 'chordVol': smooth(this.chordBus.gain, v * 0.55); break;
-        case 'bpm': smooth(this.delay.delayTime, (60 / v) * 0.75); break; // corchea con puntillo
+        case 'bpm': for (const { d } of this.delays) smooth(d.delayTime, (60 / v) * 0.75); break; // corchea con puntillo
       }
     }
 
@@ -211,6 +226,19 @@
 
     updateBassDrive() {
       this.bassDrive.set(Math.max(this.kitDef.bass?.drive || 0, this.bassMode === 'acid' ? 0.4 : 0));
+    }
+
+    // Paneo hacia `dest` (pan de −1, izquierda, a 1, derecha). Un StereoPanner en el centro deja cada lado
+    // 3 dB por debajo de una señal mono (que suena entera por los dos), así que una entrada mono lleva √2:
+    // centrado suena igual que sin paneo. Una entrada que ya es estéreo pasa sin atenuarse (mono = false).
+    // Devuelve { input, pan (AudioParam), nodes }.
+    stereo(pan, dest, mono = true) {
+      const input = this.ctx.createGain();
+      input.gain.value = mono ? Math.SQRT2 : 1;
+      const p = this.ctx.createStereoPanner();
+      p.pan.value = pan;
+      input.connect(p).connect(dest);
+      return { input, pan: p.pan, nodes: [input, p] };
     }
 
     // Paso bajo de un polo (6 dB por octava) hacia `dest`, uno por salida y frecuencia, creado una sola
@@ -374,7 +402,9 @@
           this.openHat = null;
         }
       }
+      this.hitIn = this.hitPans[type] || this.drumIn; // salida de los golpes de este tipo (paneo)
       const g = K[type] && K[type](this, t, v);
+      this.hitIn = this.drumIn;
       if (type === 'open' && g) this.openHat = { g, t, end: t + 0.4 };
     }
 
@@ -390,8 +420,9 @@
       }
     }
 
-    // `dest`: por defecto la batería; los kits con bombo propio mandan el bombo a E.kickIn
-    noiseHit(t, dur, v, ftype, ffreq, q, dest = this.drumIn) {
+    // `dest`: por defecto la batería (con el paneo del tipo de golpe); los kits con bombo propio mandan
+    // el bombo a E.kickIn
+    noiseHit(t, dur, v, ftype, ffreq, q, dest = this.hitIn) {
       const ctx = this.ctx;
       const s = ctx.createBufferSource();
       s.buffer = this.noiseBuf;
@@ -408,7 +439,7 @@
       return g;
     }
 
-    tone(t, type, f0, f1, sweep, dur, v, dest = this.drumIn) {
+    tone(t, type, f0, f1, sweep, dur, v, dest = this.hitIn) {
       const ctx = this.ctx;
       const o = ctx.createOscillator();
       o.type = type;
@@ -442,13 +473,13 @@
         o.start(t); o.stop(t + dur + 0.02);
         nodes.push(o);
       }
-      f.connect(g).connect(this.drumIn);
+      f.connect(g).connect(this.hitIn);
       this.keep(t + dur + 0.05, ...nodes);
     }
 
     // Hats y platillos metálicos al estilo 808/909: seis ondas cuadradas de frecuencias inarmónicas
     // suenan siempre, y cada golpe abre sobre ellas un filtro y una envolvente.
-    metal(t, dur, v, hp = 7000, dest = this.drumIn) {
+    metal(t, dur, v, hp = 7000, dest = this.hitIn) {
       const ctx = this.ctx;
       if (!this.metalSum) {
         this.metalSum = ctx.createGain();
