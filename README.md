@@ -120,7 +120,10 @@ En la sección **Acordes** del panel:
   primer acorde.
 
 Con acordes, el bajo toca la fundamental de cada acorde, el modo Arpegio recorre el acorde que suena y el
-**build-up** junta las voces en la espiral; el drop las abre y la progresión vuelve a empezar.
+**build-up** junta las voces en la espiral; el drop las abre y la progresión vuelve a empezar. Además, con
+**la melodía cae en una nota del acorde en cada pulso** (activada por defecto), en los modos escala, pasos
+y ritmo la nota que coincide con un pulso pasa a la nota del acorde más cercana; entre pulsos sigue libre
+por la escala, así la melodía no choca con la armonía y no pierde movimiento.
 
 ## Géneros y canciones
 

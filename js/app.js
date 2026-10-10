@@ -34,6 +34,7 @@
     // registro de las voces e intro en espiral al empezar desde el principio
     chords: false, chordProg: 'video', chordRich: 5, chordVoices: 9, chordBars: 1, chordInst: 'pad',
     chordVoicing: 'fijo', chordIntro: false,
+    chordMel: true, // con acordes, la melodía cae en una nota del acorde en cada pulso
     form: 'loop', // estructura: 'loop' (todo suena siempre) o 'song' (intro, estrofa, drop… ver js/form.js)
     ghost: true, notes: true, bw: false,
   };
@@ -158,14 +159,14 @@
       const onSub = s % state.sub === 0;
       const tn = t + hum(0.005);
       if (state.mode === 'steps' && onSub) {
-        engine.note(tn, music.mtof(q), Math.max(0.18, stepDur * state.sub * 1.6), humV(0.8));
+        engine.note(tn, music.mtof(melNote(q, sb, i % 4 === 0)), Math.max(0.18, stepDur * state.sub * 1.6), humV(0.8));
       } else if (state.mode === 'glide' && !engine.inst.sustain && onSub) {
         // un instrumento percusivo no puede sostener el tono: sigue la curva a golpes, sin ajustar a la escala
         engine.note(tn, music.mtof(m), Math.max(0.15, stepDur * state.sub * 1.4), humV(0.8));
       } else if (state.mode === 'pattern' && P.mel[i]) {
         let gap = 1; // la nota dura hasta la siguiente del patrón
         while (gap < 16 && !P.mel[(i + gap) % 16]) gap++;
-        engine.note(tn, music.mtof(q), Math.max(0.12, gap * stepDur * 0.95), humV(P.mel[i]));
+        engine.note(tn, music.mtof(melNote(q, sb, i % 4 === 0)), Math.max(0.12, gap * stepDur * 0.95), humV(P.mel[i]));
       } else if (state.mode === 'arp' && onSub) {
         // arpegio: notas del acorde que suena (o, sin acordes, del acorde de la escala sobre la nota de
         // la función), a la altura que marca la función en ese momento
@@ -269,6 +270,20 @@
     }
     if (chord !== sch.chord) logChord(sb, chord);
     if (change) chordLayer.prune((passOf(sb) - 1) * beatsPerPass());
+  }
+
+  // Acorde que suena en el pulso b (el último cambio programado antes de b)
+  function chordAtBeat(b) {
+    for (let i = sch.chordLog.length - 1; i >= 0; i--) if (sch.chordLog[i].b <= b + 1e-6) return sch.chordLog[i].chord;
+    return null;
+  }
+
+  // Nota que toca la melodía: la de la escala (q) o, si suenan acordes y es un pulso (`strong`), la nota
+  // del acorde más cercana, para que la melodía no choque con la armonía
+  function melNote(q, b, strong) {
+    if (!(state.chords && state.chordMel && strong)) return q;
+    const c = chordAtBeat(b);
+    return c ? CH.snapToChord(q, c) : q;
   }
 
   // Activa o apaga los acordes; al apagarlos las voces se callan en el pulso `atBeat` (o ahora)
@@ -378,7 +393,7 @@
     const changed = q !== sch.lastNote;
     const since = t - sch.lastNoteTime;
     if ((changed && since > 0.04) || (newSlot && !changed && since > (30 / state.bpm) * 0.9)) {
-      engine.note(t, music.mtof(q), Math.min(0.9, 60 / state.bpm), 0.75);
+      engine.note(t, music.mtof(melNote(q, b, b - Math.floor(b) < 0.15)), Math.min(0.9, 60 / state.bpm), 0.75);
       sch.lastNote = q;
       sch.lastNoteTime = t;
     }
@@ -969,6 +984,7 @@
     $('chordInst').value = state.chordInst;
     $('chordVoicing').value = state.chordVoicing;
     $('chordIntro').checked = state.chordIntro;
+    $('chordMel').checked = state.chordMel;
     $('ghost').checked = state.ghost;
     $('notes').checked = state.notes;
     $('bw').checked = state.bw;
@@ -1032,6 +1048,7 @@
     on('chordInst', 'change', (e) => { state.chordInst = e.target.value; });
     on('chordVoicing', 'change', (e) => { state.chordVoicing = e.target.value; shownFn = null; });
     on('chordIntro', 'change', (e) => { state.chordIntro = e.target.checked; });
+    on('chordMel', 'change', (e) => { state.chordMel = e.target.checked; });
     for (const k of SLIDERS) on(k, 'input', (e) => engine.set(k, +e.target.value));
 
     on('styleSel', 'change', (e) => { state.style = e.target.value; newBeat(); });

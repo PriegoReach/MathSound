@@ -151,6 +151,16 @@
     return [0, ...Array.from({ length: k }, (_, j) => (j % 2 ? 1 : -1) * (0.2 + (0.55 * j) / Math.max(1, k - 1)))];
   }
 
+  // Nota del acorde más cercana a q (si hay dos igual de cerca, la de abajo): la melodía cae en ella en
+  // los pulsos para no chocar con el acorde
+  function snapToChord(q, chord) {
+    for (let d = 0; d <= 6; d++) {
+      if (chord.pcs.includes(pc(q - d))) return q - d;
+      if (chord.pcs.includes(pc(q + d))) return q + d;
+    }
+    return q;
+  }
+
   // Espiral: progreso u de 0 a 1. Empieza separada `A` semitonos del centro, gira cada vez más deprisa
   // (de 1,5 a 7,5 vueltas por espiral) y el radio se cierra hasta cero.
   const spiralPhase = (u) => Math.PI / 2 + 2 * Math.PI * (1.5 * u + 3 * u * u);
@@ -304,6 +314,6 @@
     clear() { this.lines = []; this.drawn = null; }
   }
 
-  MS.CHORDS = { PROGRESSIONS, RICHNESS, VOICINGS, INSTS, chordOf, degreeOf, chordName, register, voicing, arpNote,
+  MS.CHORDS = { PROGRESSIONS, RICHNESS, VOICINGS, INSTS, chordOf, degreeOf, chordName, register, voicing, arpNote, snapToChord,
     lineAt, trace, ChordLayer };
 })(globalThis.MS = globalThis.MS || {});
