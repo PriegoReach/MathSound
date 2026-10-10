@@ -1,8 +1,8 @@
 // Gráfica en canvas: la curva se va dibujando mientras suena y un punto marca la posición actual.
 // El fondo es una pauta: líneas verticales en cada pulso (más marcadas cada compás de 4 pulsos)
 // y líneas horizontales en las notas de la escala, para ver qué nota suena a cada altura.
-// Si suenan acordes, sus voces se dibujan como líneas que avanzan con el cursor (como en el video de
-// la progresión de acordes) y la escala vertical se amplía para que quepan todas.
+// Si suenan acordes, sus voces se dibujan como líneas que avanzan con el cursor y la escala vertical se
+// amplía para que quepan todas.
 // Los colores se leen de las variables CSS --plot-* y --pen-* (ver css/styles.css).
 (function (MS) {
   'use strict';
@@ -156,7 +156,7 @@
 
     // Voces de los acordes. V = { lines, from, now, at, trace, spiral, xOf, yOf }: cada línea va del
     // principio de la vuelta (pulso `from`) al cursor (`now`) y acaba en un punto; durante la espiral, dos
-    // puntos giran en un círculo que se cierra, como al principio del video.
+    // puntos giran en un círculo que se cierra.
     drawVoices(V) {
       const g = this.g, th = this.th;
       const P = (b, p) => [this.X(V.xOf(b)), this.Y(V.yOf(p))];

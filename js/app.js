@@ -35,7 +35,7 @@
     auto: '', autoEvery: 1, // qué cambia solo al empezar cada vuelta: '' | 'fn' | 'variation' | 'all'
     // acordes (ver js/chords.js): progresión, notas por acorde, voces, compases por acorde, sonido,
     // registro de las voces e intro en espiral al empezar desde el principio
-    chords: false, chordProg: 'video', chordRich: 5, chordVoices: 9, chordBars: 1, chordInst: 'pad',
+    chords: false, chordProg: 'escalera', chordRich: 5, chordVoices: 9, chordBars: 1, chordInst: 'pad',
     chordVoicing: 'fijo', chordIntro: false,
     chordMel: true, // con acordes, la melodía cae en una nota del acorde en cada pulso
     form: 'loop', // estructura: 'loop' (todo suena siempre) o 'song' (intro, estrofa, drop… ver js/form.js)
@@ -223,7 +223,7 @@
 
   // Acorde número k de la progresión; en "la elige la función", el del grado de la nota q
   function chordFor(k, q) {
-    const prog = CH.PROGRESSIONS[state.chordProg] || CH.PROGRESSIONS.video;
+    const prog = CH.PROGRESSIONS[state.chordProg] || CH.PROGRESSIONS.escalera;
     let deg;
     if (prog.degrees) deg = prog.degrees[k % prog.degrees.length];
     else deg = q !== null ? CH.degreeOf(q, state) : sch.chord ? sch.chord.deg : 0;
@@ -360,7 +360,7 @@
   }
 
   // Glissando: la frecuencia se calcula 2000 veces por segundo y se entrega como una curva,
-  // así las funciones que oscilan muy rápido (senos anidados, fractales) suenan a FM como en los videos.
+  // así las funciones que oscilan muy rápido (senos anidados, fractales) suenan a FM.
   const CURVE_RATE = 2000;
   function scheduleGlide(t0, t1) {
     const n = Math.max(2, Math.ceil((t1 - t0) * CURVE_RATE) + 1);
@@ -560,7 +560,7 @@
   // Función nueva con las familias del género que suena
   function genreFunction() {
     const G = genreOf();
-    return gen.randomFunction(state.xMin, state.xMax, G ? { families: G.families, refs: G.refs } : { refs: 0.15 });
+    return gen.randomFunction(state.xMin, state.xMax, G ? { families: G.families, classics: G.classics } : { classics: 0.15 });
   }
 
   // Beat, instrumento y modo nuevos dentro del mismo género (escala y tónica se mantienen).
@@ -1217,10 +1217,10 @@
 
   const SLIDERS = ['melVol', 'drive', 'reverb', 'delay', 'drumVol', 'bassVol', 'chordVol']; // controles del motor de audio
 
-  // Ejemplos propios y las funciones de los videos de referencia, en dos grupos
+  // Ejemplos y funciones clásicas, en dos grupos
   function fillPresets(el) {
     fillSelect(el, [['', 'Ejemplos…']]);
-    for (const [label, list, k] of [['Ejemplos', gen.PRESETS, 'p'], ['De los videos de referencia', gen.REFS, 'r']]) {
+    for (const [label, list, k] of [['Ejemplos', gen.PRESETS, 'p'], ['Clásicas de MathSound', gen.CLASSICS, 'c']]) {
       const g = document.createElement('optgroup');
       g.label = label;
       list.forEach((p, i) => {
@@ -1338,7 +1338,7 @@
     on('presetSel', 'change', (e) => {
       const v = e.target.value;
       if (!v) return;
-      const make = v[0] === 'r' ? gen.referenceFunction : gen.presetFunction;
+      const make = v[0] === 'c' ? gen.classicFunction : gen.presetFunction;
       setFunction(make(+v.slice(1), state.xMin, state.xMax));
     });
     on('genreSel', 'change', (e) => { state.genre = e.target.value; randomAll(); });

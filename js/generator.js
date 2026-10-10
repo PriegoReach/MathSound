@@ -39,7 +39,7 @@
   const FAMILIES = [
     {
       name: 'Arcos decrecientes', w: 3,
-      make() { // A·e^{-c⌊x mod n⌋}·forma(x mod 1) − A/2  (como el video)
+      make() { // A·e^{-c⌊x mod n⌋}·forma(x mod 1) − A/2
         const A = r1(rand(2, 4)), c = r2(rand(0.3, 0.9)), n = pick([2, 3, 4, 4, 8]);
         const env = fn('exp', neg(mul(num(c), fn('floor', mod(x(), num(n))))));
         return sub(mul(mul(num(A), env), shape(phase(pick([1, 1, 1, 2])))), num(r1(A / 2)));
@@ -181,7 +181,7 @@
         return sub(mul(num(A), fn('sin', mul(num(c), steps(1)))), mul(num(D), pow(phase(pick([1, 2])), num(p))));
       },
     },
-    // ----- Inspiradas en el video de referencia de funciones convertidas en tono -----
+    // ----- A trozos, asíntotas y fractales: las más locas -----
     {
       name: 'Trino, nota y sierra', w: 2,
       make() { // a trozos: trino rápido, una nota quieta y una sierra, repetidos cada P unidades
@@ -264,11 +264,11 @@
     return list[list.length - 1];
   }
 
-  // opts.families: nombres de las familias permitidas (las de un género) · opts.refs: probabilidad
-  // de usar una de las funciones de los videos de referencia. Nunca repite la familia anterior.
+  // opts.families: nombres de las familias permitidas (las de un género) · opts.classics: probabilidad
+  // de usar una de las funciones clásicas. Nunca repite la familia anterior.
   let lastFamily = null;
   function randomFunction(xMin, xMax, opts = {}) {
-    if (opts.refs && Math.random() < opts.refs) return referenceFunction(Math.floor(Math.random() * REFS.length), xMin, xMax);
+    if (opts.classics && Math.random() < opts.classics) return classicFunction(Math.floor(Math.random() * CLASSICS.length), xMin, xMax);
     let pool = opts.families ? FAMILIES.filter((f) => opts.families.includes(f.name)) : FAMILIES;
     if (!pool.length) pool = FAMILIES;
     if (pool.length > 1) pool = pool.filter((f) => f.name !== lastFamily);
@@ -292,7 +292,7 @@
   }
 
   const PRESETS = [
-    { name: 'Original del video', text: '3.2*exp(-0.5*floor(mod(x, 4)))*(1 - (2*mod(x, 1) - 1)^2) - 1.6' },
+    { name: 'Arcos que caen', text: '3.2*exp(-0.5*floor(mod(x, 4)))*(1 - (2*mod(x, 1) - 1)^2) - 1.6' },
     { name: 'Escalera senoidal', text: '2*sin(1.7*floor(2x)) + 0.5*(1 - abs(2*mod(x, 1) - 1))' },
     { name: 'Arpegio 3·⌊2x⌋ mod 7', text: '0.6*mod(3*floor(2x), 7) - 1.8' },
     { name: 'Pelota rebotando', text: '3.5*abs(sin(pi*x))*exp(-0.8*mod(x, 2)) - 1.7' },
@@ -305,9 +305,9 @@
     { name: 'Seno escalonado', text: '0.5*round(3*sin(0.5*pi*x))' },
   ];
 
-  // Las 12 funciones de los videos de referencia, copiadas de las fórmulas que mostraban
+  // Las clásicas de MathSound: doce funciones con mucha personalidad (asíntotas, fractales, senos anidados…)
   const triText = (u) => `(4*abs(${u} - floor(${u} + 0.75) + 0.25) - 1)`;
-  const REFS = [
+  const CLASSICS = [
     { name: 'Arcos decrecientes', text: '3.2*exp(-0.5*floor(mod(x, 4)))*(1 - (2*mod(x, 1) - 1)^2) - 1.6' },
     { name: 'Caída con vibrato', text: '6*exp(-3*mod(x, 4)) - 3 + 0.4*sin(20*mod(x, 6))' },
     { name: 'Trino, nota y sierra', text: 'if(mod(x, 2) < 0.5, 3*(1 - 2*floor(2*mod(6x, 1))), if(mod(x, 2) < 1.2, -1.2, 2.2*2*(2x - floor(2x + 0.5))))' },
@@ -329,12 +329,12 @@
     return F;
   }
 
-  function referenceFunction(i, xMin, xMax) {
-    const r = REFS[((i % REFS.length) + REFS.length) % REFS.length];
+  function classicFunction(i, xMin, xMax) {
+    const r = CLASSICS[((i % CLASSICS.length) + CLASSICS.length) % CLASSICS.length];
     const F = makeFunction(parse(r.text), { name: r.name }, xMin, xMax);
     F.hue = Math.floor(rand(0, 360));
     return F;
   }
 
-  MS.gen = { randomFunction, presetFunction, referenceFunction, PRESETS, REFS, FAMILIES };
+  MS.gen = { randomFunction, presetFunction, classicFunction, PRESETS, CLASSICS, FAMILIES };
 })(globalThis.MS = globalThis.MS || {});

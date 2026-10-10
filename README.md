@@ -118,23 +118,24 @@ de caja que se acelera, ruido que sube de tono y un filtro que va dejando el mix
 **drop** vuelve todo con un golpe grave y un platillo. En *Función*, **Con build-up y drop antes de cada
 cambio** lo hace solo justo antes de cada cambio automático.
 
-## Acordes (el video de la progresión)
+## Acordes
 
-Idea sacada de un video de referencia de una progresión de acordes: nueve voces sostenidas tocan
-**I–ii–iii–IV–vi–V–I** en Re♭ mayor con acordes de novena (en el iii, la oncena en lugar de la novena) y,
-en cada cambio, cada voz se desliza con una curva en S hasta la nota del acorde nuevo que menos la obliga a
-moverse. Al principio dos voces giran en espiral cada vez más cerca y más deprisa hasta juntarse, y con un
-golpe se abren en abanico hacia el primer acorde. El código está en [js/chords.js](js/chords.js).
+Hasta nueve voces sostenidas tocan una progresión y, en cada cambio de acorde, cada voz se desliza con una
+curva en S hasta la nota del acorde nuevo que menos la obliga a moverse (conducción de voces): por
+ejemplo **I–ii–iii–IV–vi–V–I** con acordes de novena (en el iii, la oncena en lugar de la novena). En la
+gráfica cada voz es una línea. Antes de un drop, dos voces giran en espiral cada vez más cerca y más
+deprisa hasta juntarse, y con el golpe se abren en abanico hacia el acorde. El código está en
+[js/chords.js](js/chords.js).
 
 En la sección **Acordes** del panel:
 
-- **Progresión**: la del video, pop (I–V–vi–IV), emotiva (vi–IV–I–V), épica (i–VI–III–VII), jazz
+- **Progresión**: escalera (I–ii–iii–IV–vi–V–I), pop (I–V–vi–IV), emotiva (vi–IV–I–V), épica (i–VI–III–VII), jazz
   (ii–V–I), andaluza (i–VII–VI–V) o **la elige la función**: en cada cambio, el grado de la nota que suena.
   Los grados se toman de la escala elegida (las pentatónicas y el blues usan la escala de 7 notas que las
   contiene).
 - **Notas**: tríadas, séptimas o novenas. **Voces**: 4, 6 o 9. **Cambio cada** ½, 1 o 2 compases.
 - **Sonido**: pad, sierra suave, supersaw, sintetizador, órgano, coro, seno, lead o chiptune, y su volumen.
-- **Las voces**: *quietas* (se mueven lo mínimo, como en el video) o *siguen a la curva* (en cada pulso se
+- **Las voces**: *quietas* (se mueven lo mínimo) o *siguen a la curva* (en cada pulso se
   agrupan alrededor de la nota de la función).
 - **Al empezar desde el principio**: dos compases de espiral, sin batería ni melodía, y el drop abre el
   primer acorde.
@@ -158,9 +159,9 @@ anterior) o fijo, con el selector **Género**. Dentro del género se eligen:
 Géneros disponibles ([js/genres.js](js/genres.js)): Phonk, Drift phonk, Funk brasileño, Reggaetón, Trap,
 Drill, Jersey club, House (incluye French house), Techno, Drum & bass, Lo-fi, Chiptune, Acid house,
 Funk y disco, Hardstyle, Hardtek, Trance, Psytrance, Ambiental (piano y pads tranquilos, composición
-propia), **Acordes en movimiento (video)**, con nueve voces que se deslizan y la espiral al empezar, y
-**Funciones (sonido de los videos)**, que usa las funciones de los videos de referencia y sonidos de
-sierra.
+propia), **Acordes en movimiento**, con nueve voces que se deslizan y la espiral al empezar, y
+**Funciones puras**: la curva en glissando, sin ajustar a ninguna escala, con las funciones más locas y
+sonidos de sierra.
 
 Algunos géneros llevan acordes a veces: House, Drum & bass, Lo-fi, Funk y disco, Hardstyle y Trance (entre
 el 30 y el 55 % de las canciones), Ambiental (75 %) y Acordes en movimiento (siempre).
@@ -247,8 +248,8 @@ Las funciones **a trozos** se escriben con `if(condición, valor, si no)` y se p
 `if(x mod 2 < 0.5, 3, if(x mod 2 < 1.2, -1.2, 2x - floor(2x + 0.5)))` se dibuja con una llave.
 En la condición valen `<`, `>`, `<=`, `>=` y `=`.
 
-En **Ejemplos** hay funciones de muestra, y en *De los videos de referencia* las 12 funciones que
-mostraban los videos de funciones convertidas en tono que sirvieron de modelo.
+En **Ejemplos** hay funciones de muestra, y en *Clásicas de MathSound* doce funciones con mucha
+personalidad: asíntotas, senos anidados, pliegues triangulares, funciones a trozos…
 
 ## Beats y kits de batería
 
@@ -304,7 +305,7 @@ navegador) en lugar de los sintetizados ([js/samples.js](js/samples.js)):
 index.html        interfaz
 css/styles.css    estilos
 js/expr.js        parser de fórmulas, evaluación y conversión a LaTeX
-js/generator.js   funciones aleatorias, ejemplos y funciones de los videos
+js/generator.js   funciones aleatorias, ejemplos y funciones clásicas
 js/genres.js      géneros: estilos, instrumentos, escalas y familias de cada uno
 js/music.js       escalas, mapeo y → nota y notas de acorde de la escala
 js/beats.js       patrones de batería, ritmos de la melodía y líneas de bajo

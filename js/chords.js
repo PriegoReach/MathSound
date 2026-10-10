@@ -1,8 +1,8 @@
-// Capa de acordes, la idea del video de referencia "chord progresion": varias voces sostenidas tocan
-// una progresión y, en cada cambio de acorde, cada voz se desliza con una curva en S hasta una nota del
-// acorde nuevo, la que menos la obliga a moverse (conducción de voces). En el video son nueve voces que
-// recorren I–ii–iii–IV–vi–V–I en Re♭ mayor con acordes de novena; al principio dos voces giran en
-// espiral hasta juntarse en una nota y, con un golpe, se abren en abanico hacia el primer acorde.
+// Capa de acordes: varias voces sostenidas tocan una progresión y, en cada cambio de acorde, cada voz se
+// desliza con una curva en S hasta una nota del acorde nuevo, la que menos la obliga a moverse (conducción
+// de voces). Con nueve voces y acordes de novena suena como un coro de sintetizadores; antes de un drop,
+// dos voces giran en espiral hasta juntarse en una nota y, con el golpe, se abren en abanico hacia el
+// acorde.
 // Las líneas de las voces se guardan en pulsos (no en segundos) para dibujarlas en la gráfica.
 (function (MS) {
   'use strict';
@@ -13,7 +13,7 @@
   // Grados de la escala (0 = primero). Los nombres usan los números romanos de una escala mayor o menor;
   // con otra escala, los mismos grados dan otros acordes.
   const PROGRESSIONS = {
-    video: { name: 'La del video: I–ii–iii–IV–vi–V–I', degrees: [0, 1, 2, 3, 5, 4] }, // y vuelve a empezar en I
+    escalera: { name: 'Escalera: I–ii–iii–IV–vi–V–I', degrees: [0, 1, 2, 3, 5, 4] }, // y vuelve a empezar en I
     pop: { name: 'Pop: I–V–vi–IV', degrees: [0, 4, 5, 3] },
     emotiva: { name: 'Emotiva: vi–IV–I–V', degrees: [5, 3, 0, 4] },
     epica: { name: 'Épica (en menor): i–VI–III–VII', degrees: [0, 5, 2, 6] },
@@ -21,14 +21,14 @@
     andaluza: { name: 'Andaluza (en menor): i–VII–VI–V', degrees: [0, 6, 5, 4] },
     funcion: { name: 'La elige la función: el grado de la nota que suena', degrees: null },
   };
-  const RICHNESS = { 3: 'Tríadas', 4: 'Séptimas', 5: 'Novenas (video)' };
+  const RICHNESS = { 3: 'Tríadas', 4: 'Séptimas', 5: 'Novenas' };
   const VOICINGS = {
-    fijo: 'Quietas, se mueven lo mínimo (video)',
+    fijo: 'Quietas: se mueven lo mínimo',
     curva: 'Siguen a la curva de la función',
   };
   // Instrumentos sostenidos que suenan bien como acordes, y cuánto se bajan los que como acorde
   // suenan más fuertes que el resto (medido en RMS con varias voces)
-  const INSTS = ['pad', 'videoSaw', 'supersaw', 'synth', 'organ', 'choir', 'sine', 'lead', 'chip'];
+  const INSTS = ['pad', 'softSaw', 'supersaw', 'synth', 'organ', 'choir', 'sine', 'lead', 'chip'];
   const TRIM = { pad: 0.85, supersaw: 0.85, synth: 0.55, organ: 0.65, choir: 0.7, sine: 0.5, lead: 0.8 };
 
   // Las escalas de 5 o 6 notas no forman acordes por terceras: se usa una de 7 notas que las contiene
@@ -37,8 +37,8 @@
   const chordScale = (name) => music.SCALES[PARENT[name] || name] || music.SCALES['Mayor'];
 
   // Acorde sobre el grado `deg` de la escala: `tones` notas apiladas por terceras (3, 4 o 5).
-  // Si la novena queda a un semitono de la fundamental (♭9, áspera) se pone la oncena en su lugar, como
-  // hace el video con el iii (Fa, La♭, Do, Mi♭ y Si♭ en Re♭ mayor); si la oncena tampoco es justa, nada.
+  // Si la novena queda a un semitono de la fundamental (♭9, áspera) se pone la oncena en su lugar (el iii
+  // de Re♭ mayor queda Fa, La♭, Do, Mi♭ y Si♭); si la oncena tampoco es justa, se queda en cuatriada.
   function chordOf(deg, tones, st) {
     const sc = chordScale(st.scale), L = sc.length, d = ((deg % L) + L) % L;
     const pcs = [];

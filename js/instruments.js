@@ -260,9 +260,9 @@
   const VOWEL_A = [[730, 4, 9], [1090, 2.2, 11], [2440, 1.2, 13]]; // [frecuencia, ganancia, Q]
 
   const SPEC = {
-    // medido en el video de referencia: sierra sin desafinar con los agudos suavizados
-    // por un paso bajo de un polo (6 dB/octava) a 1.2 kHz
-    videoSaw: { layers: [{ type: 'sawtooth' }], filter: { type: 'onepole', f: 1200 }, level: 0.45, attack: 0.01 },
+    // sierra sin desafinar con los agudos suavizados por un paso bajo de un polo (6 dB/octava) a 1,2 kHz:
+    // el sonido más claro para oír la forma de la curva
+    softSaw: { layers: [{ type: 'sawtooth' }], filter: { type: 'onepole', f: 1200 }, level: 0.45, attack: 0.01 },
     synth: { layers: [{ type: 'triangle' }, { type: 'triangle', detune: 7, gain: 0.5 }], filter: { type: 'lowpass', f: 4500 }, level: 0.5 },
     sine: { layers: [{ type: 'sine' }], level: 0.55 },
     lead: { layers: [{ type: 'sawtooth' }, { type: 'sawtooth', detune: 9, gain: 0.7, pan: 0.4 }, { type: 'sawtooth', detune: -9, gain: 0.7, pan: -0.4 }], filter: { type: 'lowpass', f: 3200, q: 1 }, level: 0.34 },
@@ -278,7 +278,7 @@
   };
 
   const INSTRUMENTS = {
-    videoSaw: { name: 'Sierra suave (de los videos)', sustain: true, voice: (E, t, f, o) => layered(E, t, f, SPEC.videoSaw, o),
+    softSaw: { name: 'Sierra suave', sustain: true, voice: (E, t, f, o) => layered(E, t, f, SPEC.softSaw, o),
       hit: pluck({ layers: [{ type: 'sawtooth' }], level: 0.45, bright: 6 }) },
     synth: { name: 'Sintetizador suave', sustain: true, voice: (E, t, f, o) => layered(E, t, f, SPEC.synth, o),
       hit: pluck({ layers: [{ type: 'triangle' }, { type: 'triangle', detune: -6 }], level: 0.34 }) },

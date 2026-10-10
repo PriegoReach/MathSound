@@ -233,7 +233,7 @@
     }
   }
 
-  // ---------- LaTeX (para mostrarla como en el video) ----------
+  // ---------- LaTeX (para mostrar la fórmula como en un libro) ----------
   // "mod" tiene precedencia baja para que cualquier operador binario lo rodee de paréntesis,
   // mientras que dentro de ⌊ ⌋, | |, exponentes o funciones se escribe sin ellos.
   const LP = { add: 4, sub: 4, mul: 5, neg: 6, pow: 8 };
@@ -315,7 +315,7 @@
     let lo = vals.length ? q(0.003) : -1;
     let hi = vals.length ? q(0.997) : 1;
     // Asíntotas (tan, 1/x…): unos pocos valores enormes estirarían la escala y el resto de la curva
-    // quedaría plana. Como en los videos, la ventana se queda en ±4.5 alrededor de la mediana.
+    // quedaría plana. La ventana se queda en ±4.5 alrededor de la mediana.
     const core = vals.length ? q(0.9) - q(0.1) : 0;
     if (core > 0 && hi - lo > 8 * core) {
       const med = q(0.5);
