@@ -64,17 +64,21 @@
       <section class="sheet" id="stage" aria-label="Gráfica de la función que suena">
         <div class="sheet-head">
           <div class="formula" id="formula"></div>
-          <p class="fname" id="fname"></p>
+          <div class="sheet-sub">
+            <p class="fname" id="fname"></p>
+            <ol id="formStrip" class="form-strip" hidden aria-label="Secciones de la canción"></ol>
+          </div>
         </div>
         <canvas id="plot"></canvas>
-        <dl class="readout">
-          <div><dt class="var">x</dt><dd id="roX" class="num">0.00</dd></div>
-          <div><dt class="var">y</dt><dd id="roY" class="num">0.000</dd></div>
-          <div><dt>Nota</dt><dd id="roNote">–</dd></div>
-          <div><dt>Frecuencia</dt><dd id="roHz">–</dd></div>
-          <div hidden><dt>Acorde</dt><dd id="roChord">–</dd></div>
-        </dl>
-        <ol id="formStrip" class="form-strip" hidden aria-label="Secciones de la canción"></ol>
+        <div class="sheet-foot">
+          <dl class="readout">
+            <div><dt class="var">x</dt><dd id="roX" class="num">0.00</dd></div>
+            <div><dt class="var">y</dt><dd id="roY" class="num">0.000</dd></div>
+            <div><dt>Nota</dt><dd id="roNote">–</dd></div>
+            <div><dt>Frecuencia</dt><dd id="roHz">–</dd></div>
+            <div hidden><dt>Acorde</dt><dd id="roChord">–</dd></div>
+          </dl>
+        </div>
       </section>
 
       <section class="beat" aria-labelledby="beatTitle">
@@ -112,177 +116,181 @@
             <button class="btn small toggle" data-act="solo" aria-pressed="false" title="Escuchar solo los acordes" aria-label="Escuchar solo los acordes">S</button>
           </div>
         </div>
-        <div class="controls">
-          <label>Tempo <output id="bpmOut"></output>
-            <input type="range" id="bpm" min="60" max="200" step="1"></label>
-          <label>Swing <output id="swingOut"></output>
-            <input type="range" id="swing" min="0" max="0.5" step="0.01"></label>
-          <label>Batería <input type="range" id="drumVol" min="0" max="1" step="0.01"></label>
-          <label>Bajo <input type="range" id="bassVol" min="0" max="1" step="0.01"></label>
-        </div>
-        <div class="options">
-          <label class="check"><input type="checkbox" id="bassOn"> El bajo sigue a la función</label>
-          <label class="inline">Bajo <select id="bassSel" aria-label="Línea de bajo"></select></label>
-          <label class="check"><input type="checkbox" id="beatTempo"> El beat elige el tempo</label>
-          <label class="check"><input type="checkbox" id="humanize"> Humanizar: pequeñas variaciones de tiempo y fuerza, como en vivo</label>
-        </div>
       </section>
     </div>
 
     <aside class="panel" aria-label="Ajustes">
-      <section aria-labelledby="hFn">
-        <h2 id="hFn">Función</h2>
-        <div class="row">
-          <input id="fxInput" class="fx" spellcheck="false" autocomplete="off" aria-label="Fórmula" aria-describedby="fxHint">
-          <button id="btnApply" class="btn">Aplicar</button>
-        </div>
-        <p id="fxError" class="error" role="alert"></p>
-        <div class="row">
-          <button id="btnRandFn" class="btn grow" title="Función nueva con beat y sonido nuevos, sin salir del género (tecla F)">
-            <svg class="i" aria-hidden="true"><use href="#i-dice"/></svg>
-            <span>Función al azar</span>
-          </button>
-          <select id="presetSel" class="grow" aria-label="Ejemplos"></select>
-        </div>
-        <label class="inline">Estructura
-          <select id="formSel">
-            <option value="loop">bucle: todo suena siempre</option>
-            <option value="song">canción: intro, estrofa, drop, puente y final</option>
-          </select>
-        </label>
-        <div class="inline">
-          <label class="inline">Al empezar cada vuelta, cambiar
-            <select id="autoSel">
-              <option value="">nada</option>
-              <option value="fn">solo la función</option>
-              <option value="variation">función, beat y sonido</option>
-              <option value="all">todo (otra canción)</option>
-            </select>
-          </label>
-          <label class="inline">cada
-            <select id="autoEvery">
-              <option value="1">vuelta</option>
-              <option value="2">2 vueltas</option>
-              <option value="4">4 vueltas</option>
-            </select>
-          </label>
-        </div>
-        <label class="check"><input type="checkbox" id="autoBuild"> Con build-up y drop antes de cada cambio</label>
-        <p class="hint" id="fxHint">Escribe con <code>x</code>, <code>+ - * / ^</code>, <code>mod(a,b)</code> o <code>a mod b</code>,
-          <code>floor</code>, <code>frac</code>, <code>abs</code>, <code>sin</code>, <code>exp</code>, <code>sqrt</code>, <code>pi</code>…
-          A trozos: <code>if(x mod 2 &lt; 0.5, 3, -1)</code></p>
-      </section>
+      <div class="tabs" role="tablist" aria-label="Ajustes">
+        <button class="tab" role="tab" id="tab-fn" aria-controls="pane-fn" aria-selected="true">Función</button>
+        <button class="tab" role="tab" id="tab-sound" aria-controls="pane-sound" aria-selected="false" tabindex="-1">Sonido</button>
+        <button class="tab" role="tab" id="tab-beat" aria-controls="pane-beat" aria-selected="false" tabindex="-1">Beat</button>
+        <button class="tab" role="tab" id="tab-chords" aria-controls="chordsSection" aria-selected="false" tabindex="-1">Acordes</button>
+        <button class="tab" role="tab" id="tab-song" aria-controls="pane-song" aria-selected="false" tabindex="-1">Canción</button>
+      </div>
 
-      <section aria-labelledby="hSound">
-        <h2 id="hSound">Sonido</h2>
-        <div class="controls">
-          <label class="wide">Instrumento <select id="instrument"></select></label>
-          <label class="wide">Modo
-            <select id="mode">
-              <option value="glide">Glissando: tono continuo</option>
-              <option value="harp">Escala: nota nueva cada vez que cambia</option>
-              <option value="steps">Pasos: una nota por subdivisión</option>
-              <option value="pattern">Ritmo: notas en la fila Melodía del beat</option>
-              <option value="arp">Arpegio: notas del acorde en cada subdivisión (trance)</option>
-            </select>
-          </label>
-          <label id="subWrap">Subdivisión
-            <select id="sub">
-              <option value="4">negras</option>
-              <option value="2">corcheas</option>
-              <option value="1">semicorcheas</option>
-            </select>
-          </label>
-          <label>Escala <select id="scale"></select></label>
-          <label>Tónica <select id="tonic"></select></label>
-          <label>Octava
-            <select id="octave">
-              <option value="-1">grave</option>
-              <option value="0">media</option>
-              <option value="1">aguda</option>
-            </select>
-          </label>
-          <label>Rango <output id="rangeOut"></output>
-            <input type="range" id="range" min="5" max="48" step="1"></label>
-          <label>Melodía <input type="range" id="melVol" min="0" max="1" step="0.01"></label>
-          <label>Distorsión <input type="range" id="drive" min="0" max="1" step="0.01"></label>
-          <label>Reverb <input type="range" id="reverb" min="0" max="1" step="0.01"></label>
-          <label>Delay <input type="range" id="delay" min="0" max="1" step="0.01"></label>
-        </div>
-      </section>
+      <div class="panes">
+        <section class="pane" id="pane-fn" role="tabpanel" aria-labelledby="tab-fn">
+          <div class="row">
+            <input id="fxInput" class="fx" spellcheck="false" autocomplete="off" aria-label="Fórmula" aria-describedby="fxHint">
+            <button id="btnApply" class="btn">Aplicar</button>
+          </div>
+          <p id="fxError" class="error" role="alert"></p>
+          <div class="row">
+            <button id="btnRandFn" class="btn grow" title="Función nueva con beat y sonido nuevos, sin salir del género (tecla F)">
+              <svg class="i" aria-hidden="true"><use href="#i-dice"/></svg>
+              <span>Función al azar</span>
+            </button>
+            <select id="presetSel" class="grow" aria-label="Ejemplos"></select>
+          </div>
+          <p class="hint" id="fxHint">Escribe con <code>x</code>, <code>+ - * / ^</code>, <code>mod(a,b)</code> o <code>a mod b</code>,
+            <code>floor</code>, <code>frac</code>, <code>abs</code>, <code>sin</code>, <code>exp</code>, <code>sqrt</code>, <code>pi</code>…
+            A trozos: <code>if(x mod 2 &lt; 0.5, 3, -1)</code></p>
+          <h3>Gráfica</h3>
+          <div class="controls">
+            <label>x desde <input type="number" id="xMin" step="1"></label>
+            <label>x hasta <input type="number" id="xMax" step="1"></label>
+            <label class="wide">Velocidad
+              <select id="xPerBeat">
+                <option value="0.5">½ unidad por pulso</option>
+                <option value="1">1 unidad por pulso</option>
+                <option value="2">2 unidades por pulso</option>
+              </select>
+            </label>
+          </div>
+          <label class="check"><input type="checkbox" id="notes"> Líneas de las notas de la escala</label>
+          <label class="check"><input type="checkbox" id="ghost"> Curva completa en tenue</label>
+          <label class="check"><input type="checkbox" id="bw"> Blanco y negro: fondo blanco, trazo negro, sin pauta</label>
+        </section>
 
-      <section id="chordsSection" class="is-off" aria-labelledby="hChords">
-        <h2 id="hChords">Acordes</h2>
-        <label class="check"><input type="checkbox" id="chordsOn"> Progresión de acordes: varias voces que se deslizan de un acorde al siguiente (tecla C)</label>
-        <div class="controls">
-          <label class="wide">Progresión <select id="chordProg"></select></label>
-          <label>Notas <select id="chordRich"></select></label>
-          <label>Voces
-            <select id="chordVoices">
-              <option value="4">4</option>
-              <option value="6">6</option>
-              <option value="9">9</option>
+        <section class="pane" id="pane-sound" role="tabpanel" aria-labelledby="tab-sound" hidden>
+          <div class="controls">
+            <label class="wide">Instrumento <select id="instrument"></select></label>
+            <label class="wide">Modo
+              <select id="mode">
+                <option value="glide">Glissando: tono continuo</option>
+                <option value="harp">Escala: nota nueva cada vez que cambia</option>
+                <option value="steps">Pasos: una nota por subdivisión</option>
+                <option value="pattern">Ritmo: notas en la fila Melodía del beat</option>
+                <option value="arp">Arpegio: notas del acorde en cada subdivisión</option>
+              </select>
+            </label>
+            <label id="subWrap">Subdivisión
+              <select id="sub">
+                <option value="4">negras</option>
+                <option value="2">corcheas</option>
+                <option value="1">semicorcheas</option>
+              </select>
+            </label>
+            <label>Escala <select id="scale"></select></label>
+            <label>Tónica <select id="tonic"></select></label>
+            <label>Octava
+              <select id="octave">
+                <option value="-1">grave</option>
+                <option value="0">media</option>
+                <option value="1">aguda</option>
+              </select>
+            </label>
+            <label>Rango <output id="rangeOut"></output>
+              <input type="range" id="range" min="5" max="48" step="1"></label>
+            <label>Melodía <input type="range" id="melVol" min="0" max="1" step="0.01"></label>
+            <label>Distorsión <input type="range" id="drive" min="0" max="1" step="0.01"></label>
+            <label>Reverb <input type="range" id="reverb" min="0" max="1" step="0.01"></label>
+            <label>Delay <input type="range" id="delay" min="0" max="1" step="0.01"></label>
+          </div>
+        </section>
+
+        <section class="pane" id="pane-beat" role="tabpanel" aria-labelledby="tab-beat" hidden>
+          <div class="controls">
+            <label>Tempo <output id="bpmOut"></output>
+              <input type="range" id="bpm" min="60" max="200" step="1"></label>
+            <label>Swing <output id="swingOut"></output>
+              <input type="range" id="swing" min="0" max="0.5" step="0.01"></label>
+            <label>Batería <input type="range" id="drumVol" min="0" max="1" step="0.01"></label>
+            <label>Bajo <input type="range" id="bassVol" min="0" max="1" step="0.01"></label>
+            <label class="wide">Línea de bajo <select id="bassSel"></select></label>
+          </div>
+          <label class="check"><input type="checkbox" id="bassOn"> El bajo sigue a la función</label>
+          <label class="check"><input type="checkbox" id="beatTempo"> El beat elige el tempo</label>
+          <label class="check"><input type="checkbox" id="humanize"> Humanizar: pequeñas variaciones de tiempo y fuerza</label>
+          <div class="group" id="samplesSection">
+            <h3>Tus sonidos</h3>
+            <p class="hint">Carga archivos de audio (WAV, MP3, OGG…) para la batería o para la melodía, o arrástralos
+              aquí: si sueltas varios, se reparten por el nombre (kick, snare, hat…). Se quedan guardados en este navegador.</p>
+            <div id="samplesList" class="samples"></div>
+            <label class="check"><input type="checkbox" id="samplesOn" checked> La batería usa tus sonidos en vez de los del kit</label>
+            <input type="file" id="sampleFile" accept="audio/*" hidden>
+            <p class="hint" id="samplesMsg" role="status"></p>
+          </div>
+        </section>
+
+        <section class="pane is-off" id="chordsSection" role="tabpanel" aria-labelledby="tab-chords" hidden>
+          <label class="check"><input type="checkbox" id="chordsOn"> Progresión de acordes: varias voces que se deslizan de un acorde al siguiente (tecla C)</label>
+          <div class="controls">
+            <label class="wide">Progresión <select id="chordProg"></select></label>
+            <label>Notas <select id="chordRich"></select></label>
+            <label>Voces
+              <select id="chordVoices">
+                <option value="4">4</option>
+                <option value="6">6</option>
+                <option value="9">9</option>
+              </select>
+            </label>
+            <label>Cambio cada
+              <select id="chordBars">
+                <option value="0.5">½ compás</option>
+                <option value="1">compás</option>
+                <option value="2">2 compases</option>
+              </select>
+            </label>
+            <label>Sonido <select id="chordInst"></select></label>
+            <label class="wide">Las voces <select id="chordVoicing"></select></label>
+            <label class="wide">Volumen de los acordes <input type="range" id="chordVol" min="0" max="1" step="0.01"></label>
+          </div>
+          <label class="check"><input type="checkbox" id="chordIntro"> Al empezar desde el principio: dos voces giran en espiral y en el drop se abren en el primer acorde</label>
+          <label class="check"><input type="checkbox" id="chordMel"> La melodía cae en una nota del acorde en cada pulso (modos escala, pasos y ritmo)</label>
+          <p class="hint">El bajo toca la fundamental de cada acorde y el modo Arpegio recorre el acorde que suena.
+            Con «Build-up y drop» las voces se juntan en espiral y se abren en abanico en el drop.</p>
+        </section>
+
+        <section class="pane" id="pane-song" role="tabpanel" aria-labelledby="tab-song" hidden>
+          <label class="inline">Estructura
+            <select id="formSel">
+              <option value="loop">bucle: todo suena siempre</option>
+              <option value="song">canción: intro, estrofa, drop, puente y final</option>
             </select>
           </label>
-          <label>Cambio cada
-            <select id="chordBars">
-              <option value="0.5">½ compás</option>
-              <option value="1">compás</option>
-              <option value="2">2 compases</option>
-            </select>
-          </label>
-          <label>Sonido <select id="chordInst"></select></label>
-          <label class="wide">Las voces <select id="chordVoicing"></select></label>
-          <label class="wide">Volumen de los acordes <input type="range" id="chordVol" min="0" max="1" step="0.01"></label>
-        </div>
-        <label class="check"><input type="checkbox" id="chordIntro"> Al empezar desde el principio: dos voces giran en espiral y en el drop se abren en el primer acorde</label>
-        <label class="check"><input type="checkbox" id="chordMel"> La melodía cae en una nota del acorde en cada pulso (modos escala, pasos y ritmo)</label>
-        <p class="hint">El bajo toca la fundamental de cada acorde y el modo Arpegio recorre el acorde que suena.
-          Con «Build-up y drop» las voces se juntan en espiral y se abren en abanico en el drop.</p>
-      </section>
+          <div class="inline">
+            <label class="inline">Al empezar cada vuelta, cambiar
+              <select id="autoSel">
+                <option value="">nada</option>
+                <option value="fn">solo la función</option>
+                <option value="variation">función, beat y sonido</option>
+                <option value="all">todo (otra canción)</option>
+              </select>
+            </label>
+            <label class="inline">cada
+              <select id="autoEvery">
+                <option value="1">vuelta</option>
+                <option value="2">2 vueltas</option>
+                <option value="4">4 vueltas</option>
+              </select>
+            </label>
+          </div>
+          <label class="check"><input type="checkbox" id="autoBuild"> Con build-up y drop antes de cada cambio</label>
+          <h3>Guardar y compartir</h3>
+          <div class="row">
+            <button id="btnSave" class="btn grow" title="Descarga la canción en un archivo .json">Guardar</button>
+            <button id="btnOpen" class="btn grow" title="Abre un archivo .json guardado antes">Abrir</button>
+            <button id="btnLink" class="btn grow" title="Copia un enlace que abre esta canción">Copiar enlace</button>
+          </div>
+          <input type="file" id="songFile" accept=".json,application/json" hidden>
+          <p class="hint" id="songMsg" role="status">Guarda la función, el beat, el sonido, los acordes, la estructura y la mezcla.
+            El enlace abre la canción en esta copia de MathSound (o en la web, si la publicas).</p>
+        </section>
+      </div>
 
-      <section id="samplesSection" aria-labelledby="hSamples">
-        <h2 id="hSamples">Tus sonidos</h2>
-        <p class="hint">Carga archivos de audio (WAV, MP3, OGG…) para la batería o para la melodía, o arrástralos
-          aquí: si sueltas varios, se reparten por el nombre (kick, snare, hat…). Se quedan guardados en este navegador.</p>
-        <div id="samplesList" class="samples"></div>
-        <label class="check"><input type="checkbox" id="samplesOn" checked> La batería usa tus sonidos en vez de los del kit</label>
-        <input type="file" id="sampleFile" accept="audio/*" hidden>
-        <p class="hint" id="samplesMsg" role="status"></p>
-      </section>
-
-      <section aria-labelledby="hView">
-        <h2 id="hView">Vista</h2>
-        <div class="controls">
-          <label>x desde <input type="number" id="xMin" step="1"></label>
-          <label>x hasta <input type="number" id="xMax" step="1"></label>
-          <label class="wide">Velocidad
-            <select id="xPerBeat">
-              <option value="0.5">½ unidad por pulso</option>
-              <option value="1">1 unidad por pulso</option>
-              <option value="2">2 unidades por pulso</option>
-            </select>
-          </label>
-        </div>
-        <label class="check"><input type="checkbox" id="notes"> Líneas de las notas de la escala</label>
-        <label class="check"><input type="checkbox" id="ghost"> Curva completa en tenue</label>
-        <label class="check"><input type="checkbox" id="bw"> Blanco y negro: fondo blanco, trazo negro, sin pauta</label>
-      </section>
-
-      <section aria-labelledby="hSong">
-        <h2 id="hSong">Canción</h2>
-        <div class="row">
-          <button id="btnSave" class="btn grow" title="Descarga la canción en un archivo .json">Guardar</button>
-          <button id="btnOpen" class="btn grow" title="Abre un archivo .json guardado antes">Abrir</button>
-          <button id="btnLink" class="btn grow" title="Copia un enlace que abre esta canción">Copiar enlace</button>
-        </div>
-        <input type="file" id="songFile" accept=".json,application/json" hidden>
-        <p class="hint" id="songMsg" role="status">Guarda la función, el beat, el sonido, los acordes, la estructura y la mezcla.
-          El enlace abre la canción en esta copia de MathSound (o en la web, si la publicas).</p>
-      </section>
-
-      <section class="keys" aria-labelledby="hKeys">
-        <h2 id="hKeys">Atajos de teclado</h2>
+      <details class="keys">
+        <summary>Atajos de teclado</summary>
         <dl>
           <div><dt><kbd>Espacio</kbd></dt><dd>Reproducir o pausar</dd></div>
           <div><dt><kbd>F</kbd></dt><dd>Función, beat y sonido nuevos</dd></div>
@@ -292,7 +300,7 @@
           <div><dt><kbd>C</kbd></dt><dd>Acordes sí o no</dd></div>
           <div><dt><kbd>Inicio</kbd></dt><dd>Volver al principio</dd></div>
         </dl>
-      </section>
+      </details>
     </aside>
   </main>
 

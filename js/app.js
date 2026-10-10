@@ -1295,7 +1295,37 @@
     $('swingOut').textContent = Math.round(state.swing * 100) + '%';
   }
 
+  // Pestañas del panel de ajustes: clic, flechas izquierda y derecha, Inicio y Fin. Se recuerda la última.
+  function selectTab(tab, focus) {
+    for (const t of document.querySelectorAll('.tab')) {
+      const on = t === tab;
+      t.setAttribute('aria-selected', String(on));
+      t.tabIndex = on ? 0 : -1;
+      $(t.getAttribute('aria-controls')).hidden = !on;
+    }
+    if (focus) tab.focus();
+    try { localStorage.setItem('mathsound.tab', tab.id); } catch { /* sin almacenamiento: no se recuerda */ }
+  }
+
+  function bindTabs() {
+    const tabs = [...document.querySelectorAll('.tab')];
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => selectTab(t));
+      t.addEventListener('keydown', (e) => {
+        const j = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
+        if (j === undefined) return;
+        e.preventDefault();
+        e.stopPropagation(); // Inicio no debe volver la canción al principio
+        selectTab(tabs[(j + tabs.length) % tabs.length], true);
+      });
+    });
+    let saved = null;
+    try { saved = localStorage.getItem('mathsound.tab'); } catch { /* sin almacenamiento */ }
+    selectTab(tabs.find((t) => t.id === saved) || tabs[0]);
+  }
+
   function bind() {
+    bindTabs();
     fillSelect($('scale'), Object.keys(music.SCALES).map((s) => [s, s]));
     fillSelect($('tonic'), music.NOTE_NAMES.map((n, i) => [i, n]));
     fillSelect($('styleSel'), [['random', 'Estilo aleatorio'], ...Object.entries(beats.STYLES).map(([k, s]) => [k, s.name])]);

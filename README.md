@@ -29,11 +29,20 @@ Pulsa **Reproducir** (el navegador exige un clic antes de permitir sonido).
   de 16 bits: en modo canción, la estructura entera; en bucle, unos 45 segundos con un fundido al final.
   Tarda unos segundos (bastante menos que la canción) y mientras tanto se puede seguir usando la página.
   Durante la exportación no hay cambios automáticos: sale la canción que está puesta.
-- En **Canción** (al final del panel): **Guardar** descarga la canción en un archivo `.json` (función,
+- En la pestaña **Canción**: **Guardar** descarga la canción en un archivo `.json` (función,
   beat con tus cambios, sonido, acordes, estructura y mezcla), **Abrir** la carga y **Copiar enlace**
   copia un enlace que la abre al instante. El enlace lleva la canción dentro (comprimida, menos de 1 KB),
   así que sirve en esta copia de MathSound o en la web si la publicas.
 - *Grabar* sigue grabando en tiempo real lo que suena (con todos los cambios que hagas mientras).
+
+### La pantalla
+
+En un ordenador todo cabe en la ventana, sin bajar: a la izquierda la gráfica (crece hasta llenar el alto
+disponible), la lectura de la nota y el secuenciador con las partes; a la derecha los ajustes en cinco
+pestañas: **Función** (fórmula, ejemplos y gráfica), **Sonido** (instrumento, modo, escala y efectos),
+**Beat** (tempo, volúmenes, línea de bajo y tus sonidos), **Acordes** y **Canción** (estructura, cambios
+automáticos, guardar y compartir). Las pestañas se recorren también con las flechas, y se recuerda la
+última que usaste. En el móvil va todo en una columna.
 
 ### La gráfica
 
@@ -45,7 +54,7 @@ Si suenan acordes, cada voz es una línea en tinta que avanza con el cursor y te
 curvas en S en cada cambio de acorde; la escala vertical se amplía para que quepan todas. Debajo de la
 gráfica se lee el acorde que suena.
 
-En **Vista** hay dos opciones que cambian el dibujo:
+En la pestaña **Función**, bajo *Gráfica*, hay dos opciones que cambian el dibujo:
 
 - **Líneas de las notas de la escala**: se pueden ocultar (útil con la escala cromática).
 - **Blanco y negro**: fondo blanco, trazo negro y sin pauta, como una hoja impresa.
@@ -100,7 +109,7 @@ trae su **línea de bajo**, y se puede fijar otra con el selector **Bajo**:
 
 Menos en el modo 808, la línea aparece como fila **Bajo** en el secuenciador y se puede editar con clics.
 
-**Humanizar** (en *Beat*) mueve un poco el tiempo y la fuerza de cada golpe y cada nota, como al tocar
+**Humanizar** (pestaña *Beat*) mueve un poco el tiempo y la fuerza de cada golpe y cada nota, como al tocar
 en vivo.
 
 ### Partes: silenciar y solo
@@ -115,7 +124,7 @@ sacar cada parte por separado.
 
 El botón **Build-up y drop** (tecla D) hace dos compases de tensión desde el próximo compás: un redoble
 de caja que se acelera, ruido que sube de tono y un filtro que va dejando el mix sin graves. En el
-**drop** vuelve todo con un golpe grave y un platillo. En *Función*, **Con build-up y drop antes de cada
+**drop** vuelve todo con un golpe grave y un platillo. En la pestaña *Canción*, **Con build-up y drop antes de cada
 cambio** lo hace solo justo antes de cada cambio automático.
 
 ## Acordes
@@ -127,7 +136,7 @@ gráfica cada voz es una línea. Antes de un drop, dos voces giran en espiral ca
 deprisa hasta juntarse, y con el golpe se abren en abanico hacia el acorde. El código está en
 [js/chords.js](js/chords.js).
 
-En la sección **Acordes** del panel:
+En la pestaña **Acordes**:
 
 - **Progresión**: escalera (I–ii–iii–IV–vi–V–I), pop (I–V–vi–IV), emotiva (vi–IV–I–V), épica (i–VI–III–VII), jazz
   (ii–V–I), andaluza (i–VII–VI–V) o **la elige la función**: en cada cambio, el grado de la nota que suena.
@@ -166,13 +175,13 @@ sonidos de sierra.
 Algunos géneros llevan acordes a veces: House, Drum & bass, Lo-fi, Funk y disco, Hardstyle y Trance (entre
 el 30 y el 55 % de las canciones), Ambiental (75 %) y Acordes en movimiento (siempre).
 
-**Cambios automáticos** (en *Función*): al empezar cada vuelta de la gráfica, se puede cambiar solo la
+**Cambios automáticos** (pestaña *Canción*): al empezar cada vuelta de la gráfica, se puede cambiar solo la
 función, la función con su beat y sonido, o toda la canción. Se elige también cada cuántas vueltas
 (1, 2 o 4). Con eso queda sonando como un generador infinito.
 
 ### Estructura de canción
 
-En *Función*, **Estructura** elige entre *bucle* (todo suena siempre, como antes) y *canción*: la
+En la pestaña *Canción*, **Estructura** elige entre *bucle* (todo suena siempre, como antes) y *canción*: la
 canción pasa por secciones que meten y sacan capas ([js/form.js](js/form.js)), y debajo de la gráfica se
 ve en cuál está.
 
@@ -284,7 +293,7 @@ salvo que cargues los tuyos.
 
 ## Tus sonidos
 
-En **Tus sonidos** (panel) puedes cargar archivos de audio propios (WAV, MP3, OGG… lo que sepa leer el
+En **Tus sonidos** (pestaña *Beat*) puedes cargar archivos de audio propios (WAV, MP3, OGG… lo que sepa leer el
 navegador) en lugar de los sintetizados ([js/samples.js](js/samples.js)):
 
 - **Batería**: una fila por golpe (bombo, caja, palmas, hi-hat, hat abierto, perc). Tu sonido sustituye

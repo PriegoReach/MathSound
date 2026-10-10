@@ -129,20 +129,42 @@ input[type=checkbox] { accent-color: var(--azul); }
 .mark .dot { fill: var(--tinta); }
 .transport { display: flex; flex-wrap: wrap; gap: .5rem; }
 
-/* ---------- Distribución ---------- */
+/* ---------- Distribución ----------
+   En pantallas anchas todo cabe en la ventana: a la izquierda la hoja (la gráfica crece hasta llenar el
+   alto) y el secuenciador; a la derecha, los ajustes en pestañas, con su propio desplazamiento. */
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 21.5rem;
-  align-items: start;
-  gap: 2rem clamp(1.5rem, 3vw, 3rem);
-  max-width: 1500px;
+  grid-template-columns: minmax(0, 1fr) 22.5rem;
+  gap: 1.25rem clamp(1.25rem, 2.5vw, 2.5rem);
+  width: 100%;
+  max-width: 1600px;
   margin: 0 auto;
-  padding: 1.5rem clamp(1rem, 3vw, 2.5rem) 3rem;
+  padding: 1.25rem clamp(1rem, 3vw, 2.5rem) 2rem;
 }
-.work { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.25rem; min-width: 0; }
+.work { display: flex; flex-direction: column; gap: 1.25rem; min-width: 0; }
 
+@media (min-width: 1041px) {
+  body { display: flex; flex-direction: column; height: 100vh; height: 100dvh; overflow: hidden; }
+  .topbar { position: static; flex: none; }
+  .layout { flex: 1; min-height: 0; grid-template-rows: minmax(0, 1fr); padding-bottom: 1.25rem; }
+  .work { min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+  .sheet { flex: 1 0 auto; display: flex; flex-direction: column; }
+  .sheet canvas { flex: 1 1 0; height: auto; min-height: 220px; }
+  .panel { display: flex; flex-direction: column; min-height: 0; }
+  .panes { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; }
+}
 @media (max-width: 1040px) {
   .layout { grid-template-columns: minmax(0, 1fr); }
+}
+/* ventanas bajas (portátiles): todo un poco más compacto para que la gráfica no quede pequeña */
+@media (min-width: 1041px) and (max-height: 860px) {
+  .layout { row-gap: .9rem; padding-top: .9rem; padding-bottom: .9rem; }
+  .work { gap: .9rem; }
+  .sheet-head { padding: .75rem 1.25rem .1rem; }
+  .formula { font-size: clamp(1rem, .7rem + .9vw, 1.45rem); }
+  .section-head { margin-bottom: .6rem; }
+  .grid { gap: 3px; }
+  .cell { height: 1.3rem; }
 }
 
 h2 { font-size: 1rem; font-weight: 600; line-height: 1.3; }
@@ -229,7 +251,7 @@ h2 { font-size: 1rem; font-weight: 600; line-height: 1.3; }
   --plot-glow: 0;
 }
 
-.sheet-head { padding: 1.25rem 1.5rem .25rem; }
+.sheet-head { padding: 1rem 1.5rem .2rem; }
 .formula {
   min-height: 2.3em;
   overflow-x: auto; overflow-y: hidden;
@@ -239,16 +261,22 @@ h2 { font-size: 1rem; font-weight: 600; line-height: 1.3; }
 .formula .katex-display { margin: 0; text-align: left; }
 .formula .katex-display > .katex { text-align: left; }
 .formula.plain { font: italic 1.5rem/1.8 var(--font-math); }
-.fname { margin-top: .2rem; color: var(--grafito); font-size: .875rem; }
+/* bajo la fórmula: el nombre de la función y, en modo canción, sus secciones */
+.sheet-sub { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .35rem 1rem; margin-top: .2rem; }
+.fname { color: var(--grafito); font-size: .875rem; }
 
 .sheet canvas { display: block; width: 100%; height: clamp(260px, 50vh, 520px); }
 
+.sheet-foot {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: .5rem 1.5rem;
+  padding: .6rem 1.5rem .7rem;
+  border-top: 1px solid var(--borde);
+}
 .readout {
   display: flex; flex-wrap: wrap; align-items: baseline;
   gap: .35rem 2rem;
   margin: 0;
-  padding: .7rem 1.5rem .8rem;
-  border-top: 1px solid var(--borde);
   color: var(--grafito);
   font-size: .8125rem;
 }
@@ -262,25 +290,24 @@ h2 { font-size: 1rem; font-weight: 600; line-height: 1.3; }
 .form-strip {
   display: flex; flex-wrap: wrap; gap: .35rem;
   margin: 0;
-  padding: .65rem 1.5rem .8rem;
-  border-top: 1px solid var(--borde);
+  padding: 0;
   list-style: none;
   color: var(--grafito);
   font: 500 .8125rem var(--font-ui-narrow);
 }
-.form-strip li { padding: .1rem .6rem; border: 1px solid var(--borde); border-radius: 999px; }
+.form-strip li { padding: .05rem .55rem; border: 1px solid var(--borde); border-radius: 999px; }
 .form-strip li.now { background: var(--tinta); border-color: var(--tinta); color: var(--hoja); font-weight: 600; }
 
 /* ---------- Secuenciador de batería ---------- */
 .section-head {
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
   gap: .75rem;
-  margin-bottom: 1rem;
+  margin-bottom: .75rem;
 }
 .beat-name { margin-left: .3rem; color: var(--grafito); font-weight: 500; }
 .section-head .row { flex-wrap: wrap; }
 
-.grid { display: grid; gap: 5px; overflow-x: auto; padding: 3px; }
+.grid { display: grid; gap: 4px; overflow-x: auto; padding: 3px; }
 .track {
   display: grid;
   grid-template-columns: 5.5rem repeat(16, minmax(1.25rem, 1fr));
@@ -289,7 +316,7 @@ h2 { font-size: 1rem; font-weight: 600; line-height: 1.3; }
 }
 .track .name { color: var(--grafito); font: 500 .8125rem var(--font-ui-narrow); white-space: nowrap; }
 .cell {
-  height: 1.75rem;
+  height: 1.5rem;
   padding: 0;
   border: 0;
   border-radius: 3px;
@@ -312,10 +339,8 @@ h2 { font-size: 1rem; font-weight: 600; line-height: 1.3; }
 .track[data-tr=mel] .cell.on { background: var(--violeta); }
 .track.is-muted { opacity: .35; } /* callada por la sección de la canción */
 
-.beat .controls { margin-top: 1.25rem; }
-
 /* partes: M silencia (rojo), S deja sonar solo esa (azul); el nombre se atenúa si no suena */
-.parts { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.25rem; margin-top: 1rem; font-size: .875rem; }
+.parts { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.25rem; margin-top: .75rem; font-size: .875rem; }
 .parts-label { color: var(--grafito); font: 500 .8125rem var(--font-ui-narrow); cursor: help; }
 .part { display: inline-flex; align-items: center; gap: .3rem; }
 .part > span { margin-right: .15rem; font-weight: 500; }
@@ -323,9 +348,28 @@ h2 { font-size: 1rem; font-weight: 600; line-height: 1.3; }
 .btn.toggle { width: 1.9rem; padding: 0; font-weight: 600; }
 .btn.toggle[data-act=mute][aria-pressed=true] { background: var(--rojo); border-color: var(--rojo); color: var(--sobre-pluma); }
 .btn.toggle[data-act=solo][aria-pressed=true] { background: var(--azul); border-color: var(--azul); color: var(--sobre-pluma); }
-.options { display: flex; flex-wrap: wrap; gap: .6rem 1.75rem; margin-top: 1.1rem; }
 
-/* ---------- Panel de ajustes ---------- */
+/* ---------- Panel de ajustes: pestañas ---------- */
+.tabs { display: flex; flex: none; border-bottom: 1px solid var(--borde); }
+.tab {
+  flex: 1 1 auto;
+  padding: .45rem .35rem .55rem;
+  border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px;
+  background: none;
+  color: var(--grafito);
+  font: 500 .9375rem var(--font-ui-narrow);
+  cursor: pointer;
+}
+.tab:hover { color: var(--tinta); }
+.tab[aria-selected=true] { color: var(--tinta); border-bottom-color: var(--tinta); font-weight: 600; }
+.panes { padding: 1.1rem .1rem 1.25rem; }
+.pane, .group { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: .8rem; }
+.pane h3 {
+  margin: .3rem 0 0; padding-top: .95rem;
+  border-top: 1px solid var(--borde);
+  font-size: .9375rem; font-weight: 600; line-height: 1.3;
+}
+
 /* tus sonidos: una fila por pista; la fila sobre la que se arrastra un archivo se marca */
 .samples { display: grid; grid-template-columns: minmax(0, 1fr); gap: .3rem; }
 .sample-row {
@@ -342,17 +386,13 @@ h2 { font-size: 1rem; font-weight: 600; line-height: 1.3; }
 .sample-row select { min-height: 1.9rem; padding: 0 .3rem; font-size: .8125rem; }
 #samplesMsg:empty { display: none; }
 .track.has-sample .name::after { content: " •"; color: var(--ocre); } /* suena con tu sonido */
-#chordsSection.is-off > :not(h2, label:first-of-type) { opacity: .55; } /* acordes apagados: se pueden preparar */
+#chordsSection.is-off > :not(label:first-of-type) { opacity: .55; } /* acordes apagados: se pueden preparar */
 
-.panel > section {
-  display: grid; grid-template-columns: minmax(0, 1fr); align-content: start;
-  gap: .75rem;
-  padding: 1.25rem 0;
-  border-top: 1px solid var(--borde);
-}
-.panel > section:first-child { padding-top: 0; border-top: 0; }
-.panel h2 { margin-bottom: .1rem; }
-
+/* atajos: plegados al pie del panel */
+.keys { flex: none; padding-top: .6rem; border-top: 1px solid var(--borde); }
+.keys summary { color: var(--grafito); font: 500 .875rem var(--font-ui-narrow); cursor: pointer; }
+.keys summary:hover { color: var(--tinta); }
+.keys[open] summary { margin-bottom: .6rem; }
 .keys dl { display: grid; grid-template-columns: auto 1fr; gap: .45rem .9rem; margin: 0; font-size: .875rem; }
 .keys dl div { display: contents; }
 .keys dd { margin: 0; color: var(--grafito); }
@@ -376,8 +416,9 @@ kbd {
   .transport .btn { flex: 1 1 auto; }
   .transport .btn.icon { flex: none; }
   .sheet-head { padding: 1rem 1rem .25rem; }
-  .readout { gap: .25rem 1.25rem; padding: .6rem 1rem; }
-  .form-strip { padding: .6rem 1rem .7rem; }
+  .sheet-foot { padding: .6rem 1rem .7rem; }
+  .sheet-sub { justify-content: flex-start; }
+  .readout { gap: .25rem 1.25rem; }
   .track { grid-template-columns: 3.75rem repeat(16, minmax(0, 1fr)); gap: 2px; }
   .track .name { font-size: .75rem; }
   .cell { height: 1.5rem; border-radius: 2px; font-size: .5625rem; }
