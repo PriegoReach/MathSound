@@ -1,0 +1,352 @@
+/* MathSound: una hoja de papel pautado sobre la mesa.
+   El plano cartesiano también es un pentagrama: las líneas horizontales son las notas de la
+   escala y las verticales, los pulsos. Las tintas son las de un bolígrafo de cuatro colores. */
+
+:root {
+  color-scheme: light;
+  --mesa: #e8ecea;          /* fondo de la página */
+  --hoja: #fbfcfb;          /* la hoja donde se dibuja */
+  --tinta: #18212b;
+  --grafito: #56616b;       /* texto secundario */
+  --borde: #c9d2d0;
+  --campo: #ffffff;         /* fondo de los campos de texto */
+  --celda: #d9e0de;         /* casilla vacía del secuenciador */
+  --celda-pulso: #c8d1cf;   /* primera casilla de cada pulso */
+  --pauta: #d5dee4;         /* línea de nota */
+  --pauta-tonica: #9fb1bf;  /* línea de la tónica */
+  --azul: #2347c8;
+  --rojo: #c62f3a;
+  --verde: #1e7b4f;
+  --violeta: #6a3fb5;
+  --ocre: #a8650f;          /* línea de bajo */
+  --sobre-pluma: #ffffff;   /* texto sobre un color de pluma */
+
+  --font-ui: "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-ui-narrow: "Barlow Semi Condensed", "Barlow", "Segoe UI", system-ui, sans-serif;
+  --font-math: KaTeX_Main, "Latin Modern Roman", "Cambria Math", "Times New Roman", serif;
+  --font-var: KaTeX_Math, "Latin Modern Math", "Cambria Math", "Times New Roman", serif;
+  --font-code: "Cascadia Code", Consolas, ui-monospace, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --mesa: #141a21;
+    --hoja: #1a222c;
+    --tinta: #e3e8ed;
+    --grafito: #9ba7b3;
+    --borde: #2d3845;
+    --campo: #111820;
+    --celda: #253040;
+    --celda-pulso: #303c4d;
+    --pauta: #26313d;
+    --pauta-tonica: #435466;
+    --azul: #8ea4ff;
+    --rojo: #ff7b86;
+    --verde: #5fd39a;
+    --violeta: #b99cff;
+    --ocre: #e0a957;
+    --sobre-pluma: #0e1426;
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  background: var(--mesa);
+  color: var(--tinta);
+  font: 400 15px/1.45 var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, p { margin: 0; }
+button, select, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--azul); outline-offset: 2px; }
+
+/* ---------- Botones y campos ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+  min-height: 2.25rem;
+  padding: 0 .85rem;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  background: var(--hoja);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color .15s, background-color .15s;
+}
+.btn:hover { border-color: var(--grafito); }
+.btn:active { transform: translateY(1px); }
+.btn .i { width: 1rem; height: 1rem; flex: none; }
+.btn.icon { width: 2.25rem; padding: 0; }
+
+.btn.primary {
+  min-width: 8.75rem;
+  background: var(--azul); border-color: var(--azul);
+  color: var(--sobre-pluma); font-weight: 600;
+}
+.btn.primary:hover { background: color-mix(in srgb, var(--azul) 86%, var(--tinta)); }
+.btn-play .i-pause,
+.btn-play.is-playing .i-play { display: none; }
+.btn-play.is-playing .i-pause { display: block; }
+
+.btn.rec .i { color: var(--rojo); }
+.btn.is-building { border-color: var(--rojo); color: var(--rojo); } /* mientras suena un build-up */
+.btn.rec.is-recording { background: var(--rojo); border-color: var(--rojo); color: var(--sobre-pluma); }
+.btn.rec.is-recording .i { color: currentColor; animation: latido 1s ease-in-out infinite; }
+@keyframes latido { 50% { opacity: .3; } }
+
+select, input[type=number], .fx {
+  min-width: 0;
+  min-height: 2.25rem;
+  padding: 0 .6rem;
+  border: 1px solid var(--borde);
+  border-radius: 4px;
+  background: var(--campo);
+}
+.fx { flex: 1; font: 14px var(--font-code); }
+.fx.bad { border-color: var(--rojo); }
+input[type=range] { width: 100%; margin: .2rem 0 0; accent-color: var(--azul); }
+input[type=checkbox] { accent-color: var(--azul); }
+
+/* ---------- Cabecera ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  gap: .75rem 1.5rem;
+  padding: .75rem clamp(1rem, 3vw, 2.5rem);
+  background: var(--mesa);
+  border-bottom: 1px solid var(--borde);
+}
+.brand { display: flex; align-items: center; gap: .75rem; }
+.brand h1 { font-size: 1.3125rem; font-weight: 600; line-height: 1.1; }
+.brand p { color: var(--grafito); font-size: .8125rem; }
+.mark { width: 2rem; height: 2rem; flex: none; }
+.mark .axes { fill: none; stroke: var(--tinta); stroke-width: 1.5; stroke-linecap: round; }
+.mark .curve { fill: none; stroke: var(--azul); stroke-width: 2.4; stroke-linecap: round; }
+.mark .dot { fill: var(--tinta); }
+.transport { display: flex; flex-wrap: wrap; gap: .5rem; }
+
+/* ---------- Distribución ---------- */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 21.5rem;
+  align-items: start;
+  gap: 2rem clamp(1.5rem, 3vw, 3rem);
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 1.5rem clamp(1rem, 3vw, 2.5rem) 3rem;
+}
+.work { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2.25rem; min-width: 0; }
+
+@media (max-width: 1040px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+}
+
+h2 { font-size: 1rem; font-weight: 600; line-height: 1.3; }
+
+.row { display: flex; align-items: center; gap: .5rem; }
+.grow { flex: 1; min-width: 0; }
+
+.controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: .9rem 1.25rem;
+}
+.controls label { display: flex; flex-direction: column; gap: .3rem; font-size: .8125rem; color: var(--grafito); }
+.controls label:has(output) { display: grid; grid-template-columns: 1fr auto; align-items: baseline; }
+.controls label:has(output) input { grid-column: 1 / -1; }
+.controls output { color: var(--tinta); font-variant-numeric: tabular-nums; }
+.controls .wide { grid-column: 1 / -1; }
+.controls select, .controls input[type=number] { color: var(--tinta); font-size: .9375rem; }
+
+.check { display: flex; align-items: flex-start; gap: .55rem; font-size: .875rem; cursor: pointer; }
+.check input { flex: none; width: 1rem; height: 1rem; margin: .15rem 0 0; }
+.inline { display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .55rem; font-size: .875rem; }
+
+.hint { color: var(--grafito); font-size: .8125rem; line-height: 1.7; }
+.hint code {
+  padding: .05rem .3rem;
+  border-radius: 3px;
+  background: var(--celda);
+  color: var(--tinta);
+  font: .8125rem var(--font-code);
+}
+.error { color: var(--rojo); font-size: .8125rem; }
+.error:empty { display: none; }
+
+/* ---------- La hoja: fórmula, gráfica y lectura ---------- */
+.sheet {
+  /* colores que lee js/plot.js */
+  --plot-bg: var(--hoja);
+  --plot-beat: rgba(24, 33, 43, .06);
+  --plot-bar: rgba(24, 33, 43, .17);
+  --plot-note: var(--pauta);
+  --plot-tonic: var(--pauta-tonica);
+  --plot-note-text: var(--grafito);
+  --plot-axis: var(--tinta);
+  --plot-text: var(--tinta);
+  --plot-dot: var(--tinta);
+  --plot-curve: none;          /* none: la curva usa una de las plumas */
+  --plot-voice: var(--tinta);  /* voces de los acordes, en tinta como en el video */
+  --plot-ghost: .16;
+  --plot-glow: 0;
+  --pen-1: var(--rojo);
+  --pen-2: var(--verde);
+  --pen-3: var(--azul);
+  --pen-4: var(--violeta);
+
+  overflow: hidden;
+  background: var(--hoja);
+  color: var(--tinta);
+  border: 1px solid var(--borde);
+  border-radius: 3px;
+  box-shadow: 0 1px 0 var(--borde), 0 22px 44px -32px rgba(24, 33, 43, .55);
+}
+@media (prefers-color-scheme: dark) {
+  .sheet {
+    --plot-beat: rgba(227, 232, 237, .05);
+    --plot-bar: rgba(227, 232, 237, .13);
+    --plot-ghost: .22;
+    --plot-glow: 1;
+    box-shadow: 0 22px 44px -30px rgba(0, 0, 0, .8);
+  }
+}
+
+/* Blanco y negro: fondo blanco, trazo negro y sin pauta (también en modo oscuro) */
+.sheet.bw {
+  --hoja: #ffffff;
+  --tinta: #000000;
+  --grafito: #555555;
+  --borde: #d4d4d4;
+  --plot-beat: none;
+  --plot-bar: none;
+  --plot-note: none;
+  --plot-curve: #000000;
+  --plot-ghost: .1;
+  --plot-glow: 0;
+}
+
+.sheet-head { padding: 1.25rem 1.5rem .25rem; }
+.formula {
+  min-height: 2.3em;
+  overflow-x: auto; overflow-y: hidden;
+  font-size: clamp(1.125rem, .8rem + 1.1vw, 1.75rem);
+  scrollbar-width: thin;
+}
+.formula .katex-display { margin: 0; text-align: left; }
+.formula .katex-display > .katex { text-align: left; }
+.formula.plain { font: italic 1.5rem/1.8 var(--font-math); }
+.fname { margin-top: .2rem; color: var(--grafito); font-size: .875rem; }
+
+.sheet canvas { display: block; width: 100%; height: clamp(260px, 50vh, 520px); }
+
+.readout {
+  display: flex; flex-wrap: wrap; align-items: baseline;
+  gap: .35rem 2rem;
+  margin: 0;
+  padding: .7rem 1.5rem .8rem;
+  border-top: 1px solid var(--borde);
+  color: var(--grafito);
+  font-size: .8125rem;
+}
+.readout div { display: flex; align-items: baseline; gap: .45rem; }
+.readout dt.var { color: var(--tinta); font: italic 1.0625rem var(--font-var); }
+.readout dt.var::after { content: " ="; font: normal 1.0625rem var(--font-math); }
+.readout dd { margin: 0; color: var(--tinta); font: 1.0625rem var(--font-math); }
+.readout dd.num { min-width: 6ch; }
+
+/* ---------- Secuenciador de batería ---------- */
+.section-head {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  gap: .75rem;
+  margin-bottom: 1rem;
+}
+.beat-name { margin-left: .3rem; color: var(--grafito); font-weight: 500; }
+.section-head .row { flex-wrap: wrap; }
+
+.grid { display: grid; gap: 5px; overflow-x: auto; padding: 3px; }
+.track {
+  display: grid;
+  grid-template-columns: 5.5rem repeat(16, minmax(1.25rem, 1fr));
+  align-items: center;
+  gap: 4px;
+}
+.track .name { color: var(--grafito); font: 500 .8125rem var(--font-ui-narrow); white-space: nowrap; }
+.cell {
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: var(--celda);
+  color: var(--sobre-pluma);
+  font: 600 .6875rem var(--font-ui-narrow);
+  cursor: pointer;
+}
+.cell.beat-start { background: var(--celda-pulso); }
+.cell:hover { box-shadow: inset 0 0 0 1px var(--grafito); }
+.cell.now { outline: 2px solid var(--tinta); outline-offset: 1px; }
+/* cada familia de la batería con su pluma */
+.track[data-tr=kick] .cell.on { background: var(--tinta); }
+.track[data-tr=snare] .cell.on, .track[data-tr=clap] .cell.on { background: var(--rojo); }
+.track[data-tr=hat] .cell.on, .track[data-tr=open] .cell.on { background: var(--azul); }
+.track[data-tr=perc] .cell.on { background: var(--verde); }
+.track[data-tr=bass], .track[data-tr=mel] { margin-top: 4px; }
+.track[data-tr=bass] .name, .track[data-tr=mel] .name { color: var(--tinta); font-weight: 600; }
+.track[data-tr=bass] .cell.on { background: var(--ocre); }
+.track[data-tr=mel] .cell.on { background: var(--violeta); }
+
+.beat .controls { margin-top: 1.25rem; }
+.options { display: flex; flex-wrap: wrap; gap: .6rem 1.75rem; margin-top: 1.1rem; }
+
+/* ---------- Panel de ajustes ---------- */
+#chordsSection.is-off > :not(h2, label:first-of-type) { opacity: .55; } /* acordes apagados: se pueden preparar */
+
+.panel > section {
+  display: grid; grid-template-columns: minmax(0, 1fr); align-content: start;
+  gap: .75rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid var(--borde);
+}
+.panel > section:first-child { padding-top: 0; border-top: 0; }
+.panel h2 { margin-bottom: .1rem; }
+
+.keys dl { display: grid; grid-template-columns: auto 1fr; gap: .45rem .9rem; margin: 0; font-size: .875rem; }
+.keys dl div { display: contents; }
+.keys dd { margin: 0; color: var(--grafito); }
+kbd {
+  display: inline-block;
+  min-width: 1.6rem;
+  padding: .05rem .4rem;
+  border: 1px solid var(--borde); border-bottom-width: 2px;
+  border-radius: 4px;
+  background: var(--hoja);
+  font: 600 .75rem var(--font-ui-narrow);
+  text-align: center;
+}
+
+/* ---------- Móvil ---------- */
+@media (max-width: 640px) {
+  body { font-size: 14px; }
+  .topbar { position: static; }
+  .brand p { display: none; }
+  .transport { width: 100%; }
+  .transport .btn { flex: 1 1 auto; }
+  .transport .btn.icon { flex: none; }
+  .sheet-head { padding: 1rem 1rem .25rem; }
+  .readout { gap: .25rem 1.25rem; padding: .6rem 1rem; }
+  .track { grid-template-columns: 3.75rem repeat(16, minmax(0, 1fr)); gap: 2px; }
+  .track .name { font-size: .75rem; }
+  .cell { height: 1.5rem; border-radius: 2px; font-size: .5625rem; }
+}
+
+/* en pantallas táctiles no hay teclado que explicar */
+@media (hover: none) and (pointer: coarse) {
+  .keys { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}

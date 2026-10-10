@@ -1,0 +1,11 @@
+# Plugins propios (Zenology de Roland): pesados y con licencia, no se suben
+plugins/
+
+# Copia del diseño anterior: ahora el historial de git cumple esa función
+respaldo-diseno-anterior/
+
+# Sistema y editores
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
