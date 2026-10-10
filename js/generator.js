@@ -181,6 +181,79 @@
         return sub(mul(num(A), fn('sin', mul(num(c), steps(1)))), mul(num(D), pow(phase(pick([1, 2])), num(p))));
       },
     },
+    {
+      name: 'Dados', w: 3,
+      make() { // ⌊n·frac(sin(c·⌊kx⌋)·b)⌋: una nota "al azar" por paso, la misma en cada vuelta
+        const n = pick([5, 7, 8]), c = r2(rand(3, 13)), b = Math.round(rand(800, 5000)), A = r1(rand(2, 3)), k = pick([1, 2, 2]);
+        const die = fn('floor', mul(num(n), fn('frac', mul(fn('sin', mul(num(c), steps(k))), num(b)))));
+        return sub(div(mul(num(A), die), num(n)), num(r1(A / 2)));
+      },
+    },
+    {
+      name: 'Arpegio en zigzag', w: 2,
+      make() { // |(⌊kx⌋ mod 2n) − n|: sube y baja nota a nota, como un arpegio de ida y vuelta
+        const n = pick([3, 4, 5, 6]), k = pick([2, 2, 4]), A = r1(rand(0.4, 0.7));
+        const zz = fn('abs', sub(mod(steps(k), num(2 * n)), num(n)));
+        return sub(mul(num(A), zz), num(r1((A * n) / 2)));
+      },
+    },
+    {
+      name: 'Meseta', w: 2,
+      make() { // A·(2/(1 + e^{−s·sin(πax)}) − 1): dos notas con un deslizamiento suave entre ellas
+        const A = r1(rand(1.2, 2)), s = pick([4, 6, 10]), a = pick([0.25, 0.5, 1]);
+        const logistic = div(num(2), add(num(1), fn('exp', neg(mul(num(s), fn('sin', mul(mul(num(a), pi()), x())))))));
+        return add(mul(num(A), sub(logistic, num(1))), mul(num(r1(rand(0.3, 0.7))), fn('sin', mul(num(r2(rand(0.7, 2.3))), steps(1)))));
+      },
+    },
+    {
+      name: 'Latido', w: 2,
+      make() { // dos campanas de Gauss por pulso (pum-pum), la segunda más baja
+        const k = pick([40, 60, 90]), A = r1(rand(2.2, 3.2)), d = r2(rand(0.2, 0.3));
+        const bump = (c) => fn('exp', neg(mul(num(k), pow(sub(phase(1), num(c)), num(2)))));
+        return sub(mul(num(A), add(bump(0.1), mul(num(0.6), bump(r2(0.1 + d))))), num(r1(A / 3)));
+      },
+    },
+    {
+      name: 'Eco que se apaga', w: 1,
+      make() { // sin(πbu)/(πbu) con u = (x mod n) − n/2: suena fuerte en el centro del compás y se apaga
+        const n = pick([4, 8]), b = pick([1, 2, 3]), A = r1(rand(2, 3));
+        const u = add(sub(mod(x(), num(n)), num(n / 2)), num(0.001));
+        const arg = mul(mul(num(b), pi()), u);
+        return sub(mul(num(A), div(fn('sin', arg), arg)), num(r1(A / 5)));
+      },
+    },
+    {
+      name: 'Escala que sube', w: 2,
+      make() { // ⌊k·(x mod n)⌋: una escala que sube (o baja) paso a paso y vuelve a empezar cada n pulsos
+        const n = pick([2, 4]), k = pick([2, 4]), A = r1(rand(2.4, 3.4)), up = Math.random() < 0.65;
+        const run = div(fn('floor', mul(num(k), mod(x(), num(n)))), num(k * n));
+        return mul(num(A), up ? sub(run, num(0.5)) : sub(num(0.5), run));
+      },
+    },
+    {
+      name: 'Ola', w: 1,
+      make() { // ((x mod n)/n)^p: sube despacio y al final de golpe, como una ola que rompe
+        const n = pick([2, 4, 8]), p = pick([3, 4, 6]), A = r1(rand(2.4, 3.4));
+        return sub(mul(num(A), pow(div(mod(x(), num(n)), num(n)), num(p))), num(r1(A / 3)));
+      },
+    },
+    {
+      name: 'Vibrato que crece', w: 1,
+      make() { // un vibrato cada vez más ancho a lo largo del compás, sobre una escalera melódica
+        const n = pick([2, 4]), c = pick([4, 6, 8]), A = r1(rand(1.5, 2.5));
+        return add(mul(mul(num(A), div(mod(x(), num(n)), num(n))), fn('sin', mul(mul(num(c), pi()), x()))),
+          mul(num(r1(rand(0.4, 0.8))), fn('sin', mul(num(r2(rand(0.7, 2.3))), steps(1)))));
+      },
+    },
+    {
+      name: 'Dos voces', w: 2,
+      make() { // se alterna muy rápido entre dos melodías, así se oyen como dos voces a la vez
+        const A = r1(rand(1, 1.8)), Bv = r1(rand(0.8, 1.5)), c = r2(rand(0.7, 2.6)), d = r2(rand(0.7, 2.6)), o = r1(rand(0.6, 1.4));
+        return iff(cmp('<', fn('frac', mul(num(pick([2, 4])), x())), num(0.5)),
+          add(mul(num(A), fn('sin', mul(num(c), steps(1)))), num(o)),
+          sub(mul(num(Bv), fn('cos', mul(num(d), steps(1)))), num(o)));
+      },
+    },
     // ----- A trozos, asíntotas y fractales: las más locas -----
     {
       name: 'Trino, nota y sierra', w: 2,
@@ -303,6 +376,11 @@
     { name: 'Trino sobre escalera', text: '1.6*sin(1.3*floor(x)) + 0.4*floor(2*mod(6x, 1))' },
     { name: 'Caída 808', text: '1.8*sin(2.1*floor(x)) - 1.5*mod(x, 1)^3' },
     { name: 'Seno escalonado', text: '0.5*round(3*sin(0.5*pi*x))' },
+    { name: 'Melodía de dados', text: '2.4*floor(7*frac(sin(7.3*floor(2x))*3741))/7 - 1.2' },
+    { name: 'Arpegio en zigzag', text: '0.7*abs(mod(floor(2x), 8) - 4) - 1.4' },
+    { name: 'Latido', text: '3*(exp(-60*(frac(x) - 0.1)^2) + 0.6*exp(-60*(frac(x) - 0.35)^2)) - 1' },
+    { name: 'Meseta', text: '1.6*(2/(1 + exp(-8*sin(0.5*pi*x))) - 1)' },
+    { name: 'Dos voces', text: 'if(frac(2x) < 0.5, 1.5*sin(1.3*floor(x)) + 0.8, 1.2*cos(2.1*floor(x)) - 0.8)' },
   ];
 
   // Las clásicas de MathSound: doce funciones con mucha personalidad (asíntotas, fractales, senos anidados…)

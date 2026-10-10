@@ -227,7 +227,7 @@
     let deg;
     if (prog.degrees) deg = prog.degrees[k % prog.degrees.length];
     else deg = q !== null ? CH.degreeOf(q, state) : sch.chord ? sch.chord.deg : 0;
-    return CH.chordOf(deg, state.chordRich, state);
+    return CH.chordOf(deg, state.chordRich, state, !!prog.dominant);
   }
 
   function logChord(b, chord) {

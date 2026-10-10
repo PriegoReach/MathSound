@@ -16,9 +16,10 @@
   const DARK = ['Frigia', 'Menor natural', 'Menor armónica', 'Pentatónica menor'];
   const WARM = ['Dórica', 'Pentatónica mayor', 'Mayor', 'Menor natural'];
   const RHYTHMIC = ['Escalera melódica', 'Arpegio modular', 'Trino', 'Compuertas', 'Saltos de octava',
-    'Caída 808', 'Contador binario', 'Llamada y respuesta', 'Escalones a trozos'];
+    'Caída 808', 'Contador binario', 'Llamada y respuesta', 'Escalones a trozos', 'Dados', 'Arpegio en zigzag',
+    'Dos voces', 'Escala que sube', 'Latido'];
   const SMOOTH = ['Arcos decrecientes', 'Ondas', 'Rebotes', 'Pulsos de Gauss', 'Seno escalonado',
-    'Raíz creciente', 'Batido', 'Escalera melódica', 'Polirritmo'];
+    'Raíz creciente', 'Batido', 'Escalera melódica', 'Polirritmo', 'Meseta', 'Eco que se apaga', 'Vibrato que crece', 'Ola'];
   const WILD = ['Senos anidados', 'Asíntotas', 'Pliegues triangulares', 'Trino, nota y sierra', 'Caída con vibrato',
     'Sierra rota', 'Escalones a trozos', 'Tangente recortada', 'Compuertas', 'Arcos decrecientes'];
 
@@ -62,7 +63,7 @@
       name: 'House', styles: ['house', 'frenchhouse'], inst: ['organ', 'epiano', 'synth', 'marimba', 'pluck'],
       scales: WARM, modes: ['pattern', 'harp', 'steps'], range: [12, 19, 24], octave: [0],
       drive: [0, 0.1], reverb: [0.25, 0.5], delay: [0.15, 0.35], families: [...RHYTHMIC, ...SMOOTH], classics: 0.05,
-      chords: { p: 0.35, inst: ['organ', 'pad', 'synth'], prog: ['jazz', 'pop', 'emotiva', 'funcion'], rich: [4, 5], voices: [4, 6], bars: [1, 2] },
+      chords: { p: 0.35, inst: ['organ', 'pad', 'synth'], prog: ['jazz', 'pop', 'emotiva', 'funcion', 'quintas', 'vaiven'], rich: [4, 5], voices: [4, 6], bars: [1, 2] },
     },
     techno: {
       name: 'Techno', styles: ['techno'], inst: ['acid', 'acid', 'lead', 'softSaw'],
@@ -73,13 +74,13 @@
       name: 'Drum & bass', styles: ['dnb', 'breakbeat'], inst: ['lead', 'choir', 'bell', 'acid', 'softSaw'],
       scales: ['Menor natural', 'Dórica', 'Menor armónica'], modes: ['glide', 'pattern', 'harp'], range: [19, 24, 31], octave: [0],
       drive: [0, 0.2], reverb: [0.2, 0.4], delay: [0.1, 0.3], families: [...SMOOTH, ...RHYTHMIC], classics: 0.15,
-      chords: { p: 0.3, inst: ['pad', 'choir'], prog: ['emotiva', 'epica', 'escalera'], rich: [4, 5], voices: [4, 6], bars: [2] },
+      chords: { p: 0.3, inst: ['pad', 'choir'], prog: ['emotiva', 'epica', 'escalera', 'batalla'], rich: [4, 5], voices: [4, 6], bars: [2] },
     },
     lofi: {
       name: 'Lo-fi', drops: false, styles: ['lofi', 'boombap'], inst: ['epiano', 'marimba', 'whistle', 'organ'],
       scales: ['Dórica', 'Pentatónica mayor', 'Mayor', 'Blues'], modes: ['harp', 'pattern', 'steps'], range: [12, 19], octave: [0],
       drive: [0, 0.1], reverb: [0.3, 0.55], delay: [0.1, 0.3], families: SMOOTH, classics: 0,
-      chords: { p: 0.5, inst: ['pad', 'organ', 'synth'], prog: ['jazz', 'escalera', 'emotiva', 'funcion'], rich: [4, 5], voices: [4, 6], bars: [1, 2] },
+      chords: { p: 0.5, inst: ['pad', 'organ', 'synth'], prog: ['jazz', 'escalera', 'emotiva', 'funcion', 'quintas', 'sueno', 'anos50'], rich: [4, 5], voices: [4, 6], bars: [1, 2] },
     },
     chip: {
       name: 'Chiptune', drops: false, styles: ['chip', 'euclid'], inst: ['chip'],
@@ -95,13 +96,13 @@
       name: 'Funk y disco', drops: false, styles: ['funky', 'frenchhouse'], inst: ['epiano', 'organ', 'lead', 'synth', 'pluck'],
       scales: ['Dórica', 'Mixolidia', 'Pentatónica menor', 'Blues'], modes: ['pattern', 'harp', 'steps'], range: [12, 19], octave: [0],
       drive: [0, 0.15], reverb: [0.15, 0.35], delay: [0.1, 0.25], families: RHYTHMIC, classics: 0.05,
-      chords: { p: 0.3, inst: ['organ', 'synth'], prog: ['jazz', 'funcion'], rich: [4], voices: [4], bars: [0.5, 1] },
+      chords: { p: 0.3, inst: ['organ', 'synth'], prog: ['jazz', 'funcion', 'vaiven', 'blues'], rich: [4], voices: [4], bars: [0.5, 1] },
     },
     hardstyle: {
       name: 'Hardstyle', styles: ['hardstyle'], inst: ['supersaw', 'supersaw', 'lead', 'softSaw'],
       scales: ['Menor natural', 'Menor armónica', 'Frigia'], modes: ['glide', 'pattern', 'arp', 'steps'], range: [19, 24, 31], octave: [0, 1],
       drive: [0.1, 0.3], reverb: [0.25, 0.45], delay: [0.1, 0.25], families: [...RHYTHMIC, ...SMOOTH], classics: 0.15,
-      chords: { p: 0.4, inst: ['supersaw'], prog: ['epica', 'andaluza', 'emotiva'], rich: [3], voices: [4, 6], bars: [1, 2] },
+      chords: { p: 0.4, inst: ['supersaw'], prog: ['epica', 'andaluza', 'emotiva', 'batalla'], rich: [3], voices: [4, 6], bars: [1, 2] },
     },
     hardtek: {
       name: 'Hardtek', styles: ['hardtek'], inst: ['acid', 'lead', 'pluck', 'softSaw', 'chip'],
@@ -113,7 +114,7 @@
       scales: ['Menor natural', 'Menor armónica', 'Dórica', 'Mayor'], modes: ['arp', 'arp', 'arp', 'glide'], sub: [1, 1, 2],
       range: [12, 19], octave: [0, 1], drive: [0, 0.1], reverb: [0.35, 0.6], delay: [0.25, 0.45],
       families: [...SMOOTH, 'Arpegio modular'], classics: 0.05,
-      chords: { p: 0.55, inst: ['supersaw', 'pad'], prog: ['epica', 'emotiva', 'pop', 'andaluza'], rich: [3, 4], voices: [4, 6], bars: [1, 2] },
+      chords: { p: 0.55, inst: ['supersaw', 'pad'], prog: ['epica', 'emotiva', 'pop', 'andaluza', 'batalla', 'canon'], rich: [3, 4], voices: [4, 6], bars: [1, 2] },
     },
     psytrance: {
       name: 'Psytrance', styles: ['psy'], inst: ['acid', 'acid', 'lead', 'supersaw', 'softSaw'],
@@ -125,7 +126,7 @@
       name: 'Ambiental', drops: false, styles: ['ambient'], inst: ['piano', 'piano', 'pad', 'epiano', 'marimba'],
       scales: ['Mayor', 'Lidia', 'Pentatónica mayor', 'Dórica'], modes: ['harp', 'pattern', 'harp'], range: [12, 19], octave: [0, 1],
       drive: [0, 0], reverb: [0.55, 0.8], delay: [0.2, 0.45], families: SMOOTH, classics: 0,
-      chords: { p: 0.75, inst: ['pad', 'pad', 'choir', 'sine'], prog: ['escalera', 'pop', 'emotiva', 'funcion'], rich: [4, 5], voices: [6, 9],
+      chords: { p: 0.75, inst: ['pad', 'pad', 'choir', 'sine'], prog: ['escalera', 'pop', 'emotiva', 'funcion', 'canon', 'royal', 'sueno'], rich: [4, 5], voices: [6, 9],
         bars: [1, 2], voicing: ['fijo', 'fijo', 'curva'], vol: [0.55, 0.7] },
     },
     acordes: { // nueve voces que se deslizan entre acordes y una espiral que se abre al empezar
@@ -133,7 +134,7 @@
       inst: ['piano', 'bell', 'epiano', 'pluck', 'marimba'], scales: ['Mayor', 'Mayor', 'Lidia', 'Menor natural', 'Dórica'],
       modes: ['harp', 'arp', 'arp', 'steps', 'pattern'], range: [12, 19], octave: [1], drive: [0, 0.05], reverb: [0.35, 0.6],
       delay: [0.15, 0.35], families: SMOOTH, classics: 0,
-      chords: { p: 1, inst: ['softSaw', 'softSaw', 'pad', 'supersaw', 'choir'], prog: ['escalera', 'escalera', 'funcion', 'emotiva', 'pop'],
+      chords: { p: 1, inst: ['softSaw', 'softSaw', 'pad', 'supersaw', 'choir'], prog: ['escalera', 'escalera', 'funcion', 'emotiva', 'pop', 'canon', 'royal', 'anos50'],
         rich: [5, 5, 4], voices: [9], bars: [1, 1, 0.5, 2], voicing: ['fijo', 'fijo', 'curva'], intro: true, vol: [0.75, 0.9] },
     },
     funciones: { // la curva sin ajustar a ninguna escala, en glissando, con las funciones más locas y beat

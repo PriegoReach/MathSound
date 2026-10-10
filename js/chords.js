@@ -11,7 +11,8 @@
   const smooth = (u) => u * u * (3 - 2 * u); // curva en S (smoothstep)
 
   // Grados de la escala (0 = primero). Los nombres usan los números romanos de una escala mayor o menor;
-  // con otra escala, los mismos grados dan otros acordes.
+  // con otra escala, los mismos grados dan otros acordes. `dominant`: todos los acordes son de séptima de
+  // dominante (como en el blues), aunque no salgan de la escala.
   const PROGRESSIONS = {
     escalera: { name: 'Escalera: I–ii–iii–IV–vi–V–I', degrees: [0, 1, 2, 3, 5, 4] }, // y vuelve a empezar en I
     pop: { name: 'Pop: I–V–vi–IV', degrees: [0, 4, 5, 3] },
@@ -19,6 +20,14 @@
     epica: { name: 'Épica (en menor): i–VI–III–VII', degrees: [0, 5, 2, 6] },
     jazz: { name: 'Jazz: ii–V–I', degrees: [1, 4, 0, 0] },
     andaluza: { name: 'Andaluza (en menor): i–VII–VI–V', degrees: [0, 6, 5, 4] },
+    canon: { name: 'Canon: I–V–vi–iii–IV–I–IV–V', degrees: [0, 4, 5, 2, 3, 0, 3, 4] },
+    anos50: { name: 'Años 50: I–vi–IV–V', degrees: [0, 5, 3, 4] },
+    royal: { name: 'J-pop: IV–V–iii–vi', degrees: [3, 4, 2, 5] },
+    quintas: { name: 'Cadena de quintas: vi–ii–V–I', degrees: [5, 1, 4, 0] },
+    sueno: { name: 'Sueño: IV–iii–ii–I', degrees: [3, 2, 1, 0] },
+    vaiven: { name: 'Vaivén (dórico): i–IV', degrees: [0, 3] },
+    batalla: { name: 'Batalla (en menor): i–VII–VI–VII', degrees: [0, 6, 5, 6] },
+    blues: { name: 'Blues de 12 compases: I7–IV7–I7–V7', degrees: [0, 3, 0, 0, 3, 3, 0, 0, 4, 3, 0, 4], dominant: true },
     funcion: { name: 'La elige la función: el grado de la nota que suena', degrees: null },
   };
   const RICHNESS = { 3: 'Tríadas', 4: 'Séptimas', 5: 'Novenas' };
@@ -39,11 +48,12 @@
   // Acorde sobre el grado `deg` de la escala: `tones` notas apiladas por terceras (3, 4 o 5).
   // Si la novena queda a un semitono de la fundamental (♭9, áspera) se pone la oncena en su lugar (el iii
   // de Re♭ mayor queda Fa, La♭, Do, Mi♭ y Si♭); si la oncena tampoco es justa, se queda en cuatriada.
-  function chordOf(deg, tones, st) {
+  function chordOf(deg, tones, st, dominant = false) {
     const sc = chordScale(st.scale), L = sc.length, d = ((deg % L) + L) % L;
-    const pcs = [];
+    let pcs = [];
     for (let k = 0; k < tones; k++) pcs.push(pc(st.tonic + sc[(d + 2 * k) % L]));
-    if (tones >= 5 && pc(pcs[4] - pcs[0]) === 1) {
+    if (dominant) pcs = [0, 4, 7, 10, 2].slice(0, tones).map((iv) => pc(pcs[0] + iv)); // 1, 3, 5, ♭7 y 9
+    else if (tones >= 5 && pc(pcs[4] - pcs[0]) === 1) {
       const eleventh = pc(st.tonic + sc[(d + 10) % L]);
       if (pc(eleventh - pcs[0]) === 5) pcs[4] = eleventh; else pcs.pop();
     }

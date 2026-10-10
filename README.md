@@ -139,9 +139,11 @@ deprisa hasta juntarse, y con el golpe se abren en abanico hacia el acorde. El c
 En la pestaña **Acordes**:
 
 - **Progresión**: escalera (I–ii–iii–IV–vi–V–I), pop (I–V–vi–IV), emotiva (vi–IV–I–V), épica (i–VI–III–VII), jazz
-  (ii–V–I), andaluza (i–VII–VI–V) o **la elige la función**: en cada cambio, el grado de la nota que suena.
-  Los grados se toman de la escala elegida (las pentatónicas y el blues usan la escala de 7 notas que las
-  contiene).
+  (ii–V–I), andaluza (i–VII–VI–V), canon (I–V–vi–iii–IV–I–IV–V), años 50 (I–vi–IV–V), J-pop (IV–V–iii–vi),
+  cadena de quintas (vi–ii–V–I), sueño (IV–iii–ii–I), vaivén dórico (i–IV), batalla (i–VII–VI–VII),
+  blues de 12 compases (con séptimas de dominante: I7, IV7 y V7) o **la elige la función**: en cada cambio,
+  el grado de la nota que suena. Los grados se toman de la escala elegida (las pentatónicas y el blues usan
+  la escala de 7 notas que las contiene).
 - **Notas**: tríadas, séptimas o novenas. **Voces**: 4, 6 o 9. **Cambio cada** ½, 1 o 2 compases.
 - **Sonido**: pad, sierra suave, supersaw, sintetizador, órgano, coro, seno, lead o chiptune, y su volumen.
 - **Las voces**: *quietas* (se mueven lo mínimo) o *siguen a la curva* (en cada pulso se
@@ -248,6 +250,15 @@ rítmica, con parámetros al azar ([js/generator.js](js/generator.js)):
 | Pliegues triangulares | ondas triangulares unas dentro de otras: suena a ruido      |
 | Caída con vibrato  | `6e^{−3(x mod 4)} + 0.4 sin(20(x mod 6))`                      |
 | Sierra rota, Escalones a trozos | funciones a trozos con `floor`, `frac` y `mod`         |
+| Dados              | `⌊n·frac(sin(c⌊kx⌋)·b)⌋`: una nota "al azar" por paso, igual en cada vuelta |
+| Arpegio en zigzag  | `|(⌊kx⌋ mod 2n) − n|`: sube y baja nota a nota                  |
+| Meseta             | `2/(1 + e^{−s·sin(πax)}) − 1`: dos notas con un deslizamiento suave |
+| Latido             | dos campanas de Gauss por pulso, pum-pum                       |
+| Eco que se apaga   | `sin(πbu)/(πbu)`: suena en el centro del compás y se apaga     |
+| Escala que sube    | `⌊k·(x mod n)⌋`: una escala paso a paso que vuelve a empezar    |
+| Ola                | `((x mod n)/n)^p`: sube despacio y al final de golpe           |
+| Vibrato que crece  | un vibrato cada vez más ancho a lo largo del compás            |
+| Dos voces          | alterna muy rápido entre dos melodías: se oyen las dos a la vez |
 
 A veces se suman dos familias. También puedes escribir tu propia fórmula en el cuadro de texto, con
 `x`, `+ - * / ^`, `mod(a, b)` o `a mod b`, `floor`, `ceil`, `abs`, `sin`, `cos`, `tan`, `exp`, `sqrt`,
