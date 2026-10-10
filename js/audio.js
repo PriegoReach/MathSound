@@ -274,7 +274,7 @@
     }
 
     updateBassDrive() {
-      this.bassDrive.set(Math.max(this.kitDef.bass?.drive || 0, this.bassMode === 'acid' ? 0.4 : 0));
+      this.bassDrive.set(Math.max(this.kitDef.bass?.drive || 0, this.bassMode === 'acid' ? 0.4 : this.bassMode === 'log' ? 0.2 : 0));
     }
 
     // Paneo hacia `dest` (pan de −1, izquierda, a 1, derecha). Un StereoPanner en el centro deja cada lado
@@ -384,6 +384,7 @@
     // Una nota de la línea de bajo según su tipo; `st` = { v, accent, slide } del paso
     bassNote(mode, t, freq, dur, st = {}) {
       if (mode === 'acid') this.acidBass(t, freq, dur, st);
+      else if (mode === 'log') this.logDrum(t, freq, dur, st);
       else if (mode === 'funk') this.pluckBass(t, freq, dur, st.v ?? 0.8, 9);
       else this.pluckBass(t, freq, dur, st.v ?? 0.8, mode === 'rolling' ? 4 : 6);
     }
@@ -413,6 +414,30 @@
       o.connect(f).connect(g).connect(this.bassIn);
       o.start(t); o.stop(t + dur + 0.05);
       this.keep(t + dur + 0.1, o, f, g);
+    }
+
+    // Log drum del amapiano: un golpe grave de madera (seno y triángulo) que cae de tono y resuena;
+    // las notas ligadas caen desde más arriba y más despacio
+    logDrum(t, freq, dur, { v = 0.85, slide = false } = {}) {
+      const ctx = this.ctx, d = Math.max(0.12, Math.min(0.7, dur));
+      const o = ctx.createOscillator(), o2 = ctx.createOscillator();
+      o.type = 'sine'; o2.type = 'triangle';
+      for (const x of [o, o2]) {
+        x.frequency.setValueAtTime(freq * (slide ? 2 : 1.5), t);
+        x.frequency.exponentialRampToValueAtTime(freq, t + (slide ? 0.12 : 0.045));
+      }
+      const g2 = ctx.createGain(); g2.gain.value = 0.35;
+      const g = ctx.createGain();
+      g.gain.value = 0;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(v, t + 0.004);
+      g.gain.exponentialRampToValueAtTime(v * 0.5, t + 0.08);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + d);
+      o.connect(g); o2.connect(g2).connect(g);
+      g.connect(this.bassIn);
+      o.start(t); o2.start(t);
+      o.stop(t + d + 0.05); o2.stop(t + d + 0.05);
+      this.keep(t + d + 0.1, o, o2, g, g2);
     }
 
     // Bajo corto con filtro que se cierra (sierra + seno grave): a contratiempo, rodante y funk.

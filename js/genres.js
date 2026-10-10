@@ -137,6 +137,48 @@
       chords: { p: 1, inst: ['softSaw', 'softSaw', 'pad', 'supersaw', 'choir', 'strings'], prog: ['escalera', 'escalera', 'funcion', 'emotiva', 'pop', 'canon', 'royal', 'anos50'],
         rich: [5, 5, 4], voices: [9], bars: [1, 1, 0.5, 2], voicing: ['fijo', 'fijo', 'curva'], intro: true, vol: [0.75, 0.9] },
     },
+    afrobeats: {
+      name: 'Afrobeats', drops: false, styles: ['afrobeats'], inst: ['steelpan', 'kalimba', 'pluck', 'marimba', 'synth', 'flute'],
+      scales: ['Mayor', 'Pentatónica mayor', 'Dórica', 'Mixolidia'], modes: ['pattern', 'pattern', 'steps', 'harp'], range: [12, 19], octave: [0, 1],
+      drive: [0, 0.1], reverb: [0.2, 0.4], delay: [0.1, 0.3], families: RHYTHMIC, classics: 0.05,
+      chords: { p: 0.45, inst: ['pad', 'organ', 'strings'], prog: ['pop', 'royal', 'vaiven', 'anos50'], rich: [4, 5], voices: [4, 6], bars: [1, 2] },
+    },
+    amapiano: {
+      name: 'Amapiano', drops: false, styles: ['amapiano'], inst: ['epiano', 'pluck', 'kalimba', 'vibes', 'flute'],
+      scales: ['Menor natural', 'Dórica', 'Pentatónica menor'], modes: ['pattern', 'harp', 'steps'], range: [12, 19], octave: [0, 1],
+      drive: [0, 0.1], reverb: [0.25, 0.45], delay: [0.15, 0.35], families: [...RHYTHMIC, ...SMOOTH], classics: 0.05,
+      chords: { p: 0.65, inst: ['pad', 'organ', 'strings'], prog: ['quintas', 'jazz', 'vaiven', 'emotiva'], rich: [4, 5], voices: [4, 6], bars: [1, 2] },
+    },
+    ukgarage: {
+      name: 'UK garage', styles: ['ukgarage'], inst: ['organ', 'pluck', 'choir', 'epiano', 'synth'],
+      scales: ['Menor natural', 'Dórica', 'Pentatónica menor'], modes: ['pattern', 'steps', 'harp'], range: [12, 19, 24], octave: [0],
+      drive: [0, 0.1], reverb: [0.2, 0.4], delay: [0.15, 0.35], families: RHYTHMIC, classics: 0.05,
+      chords: { p: 0.5, inst: ['organ', 'pad'], prog: ['quintas', 'jazz', 'emotiva'], rich: [4, 5], voices: [4], bars: [1, 2] },
+    },
+    dubstep: {
+      name: 'Dubstep', styles: ['dubstep'], inst: ['wobble', 'wobble', 'acid', 'lead', 'supersaw', 'sub808'],
+      scales: ['Frigia', 'Menor natural', 'Menor armónica'], modes: ['glide', 'pattern', 'steps'], range: [12, 19, 24], octave: [-1, 0],
+      drive: [0.2, 0.5], reverb: [0.15, 0.35], delay: [0.1, 0.25], families: [...RHYTHMIC, ...WILD], classics: 0.2,
+      chords: { p: 0.3, inst: ['pad', 'strings'], prog: ['epica', 'batalla', 'andaluza'], rich: [3], voices: [4], bars: [2] },
+    },
+    bossa: {
+      name: 'Bossa nova', drops: false, styles: ['bossa'], inst: ['epiano', 'piano', 'flute', 'vibes', 'harp'],
+      scales: ['Mayor', 'Dórica', 'Lidia', 'Mixolidia'], modes: ['harp', 'pattern', 'steps'], range: [12, 19], octave: [0],
+      drive: [0, 0], reverb: [0.25, 0.45], delay: [0.05, 0.2], families: SMOOTH, classics: 0,
+      chords: { p: 0.8, inst: ['organ', 'pad', 'strings'], prog: ['jazz', 'quintas', 'sueno', 'vaiven'], rich: [4, 5], voices: [4, 6], bars: [1, 2] },
+    },
+    cumbia: {
+      name: 'Cumbia', drops: false, styles: ['cumbia'], inst: ['brass', 'flute', 'organ', 'synth', 'clavinet', 'steelpan'],
+      scales: ['Menor natural', 'Mayor', 'Dórica', 'Menor armónica'], modes: ['pattern', 'pattern', 'steps', 'harp'], range: [12, 19], octave: [0, 1],
+      drive: [0, 0.15], reverb: [0.15, 0.35], delay: [0.05, 0.2], families: RHYTHMIC, classics: 0.05,
+      chords: { p: 0.35, inst: ['organ', 'brass'], prog: ['anos50', 'andaluza', 'pop'], rich: [3], voices: [4], bars: [1, 2] },
+    },
+    synthwave: {
+      name: 'Synthwave', styles: ['synthwave'], inst: ['lead', 'supersaw', 'synth', 'brass', 'softSaw'],
+      scales: ['Menor natural', 'Dórica', 'Menor armónica'], modes: ['arp', 'arp', 'glide', 'pattern'], sub: [1, 2], range: [12, 19, 24], octave: [0, 1],
+      drive: [0, 0.15], reverb: [0.35, 0.6], delay: [0.25, 0.45], families: [...SMOOTH, 'Arpegio modular', 'Arpegio en zigzag'], classics: 0.05,
+      chords: { p: 0.75, inst: ['pad', 'strings', 'supersaw', 'brass'], prog: ['epica', 'batalla', 'emotiva', 'pop'], rich: [3, 4], voices: [4, 6], bars: [1, 2] },
+    },
     funciones: { // la curva sin ajustar a ninguna escala, en glissando, con las funciones más locas y beat
       name: 'Funciones puras',
       styles: ['phonk', 'trap', 'techno', 'drill', 'house', 'euclid', 'drift', 'dnb'], inst: ['softSaw', 'softSaw', 'softSaw', 'sine', 'lead'],

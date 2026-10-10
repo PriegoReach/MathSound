@@ -106,6 +106,9 @@ trae su **línea de bajo**, y se puede fijar otra con el selector **Bajo**:
 - **A contratiempo**: entre los bombos, como en el trance y el hardstyle.
 - **Rodante (psytrance)**: tres semicorcheas después de cada bombo.
 - **Funk**: síncopas con saltos de octava y notas fantasma.
+- **Log drum (amapiano)**: golpes graves de madera que caen de tono, sincopados; las notas ligadas se
+  arrastran desde más arriba.
+- **Corcheas (synthwave)**: una nota en cada corchea, el pulso constante de los años 80.
 
 Menos en el modo 808, la línea aparece como fila **Bajo** en el secuenciador y se puede editar con clics.
 
@@ -170,13 +173,14 @@ anterior) o fijo, con el selector **Género**. Dentro del género se eligen:
 
 Géneros disponibles ([js/genres.js](js/genres.js)): Phonk, Drift phonk, Funk brasileño, Reggaetón, Trap,
 Drill, Jersey club, House (incluye French house), Techno, Drum & bass, Lo-fi, Chiptune, Acid house,
-Funk y disco, Hardstyle, Hardtek, Trance, Psytrance, Ambiental (piano y pads tranquilos, composición
-propia), **Acordes en movimiento**, con nueve voces que se deslizan y la espiral al empezar, y
+Funk y disco, Hardstyle, Hardtek, Trance, Psytrance, Ambiental (piano y pads tranquilos), Afrobeats,
+Amapiano, UK garage, Dubstep, Bossa nova, Cumbia, Synthwave, **Acordes en movimiento**, con nueve voces que se deslizan y la espiral al empezar, y
 **Funciones puras**: la curva en glissando, sin ajustar a ninguna escala, con las funciones más locas y
 sonidos de sierra.
 
-Algunos géneros llevan acordes a veces: House, Drum & bass, Lo-fi, Funk y disco, Hardstyle y Trance (entre
-el 30 y el 55 % de las canciones), Ambiental (75 %) y Acordes en movimiento (siempre).
+Muchos géneros llevan acordes en parte de sus canciones (por ejemplo House, Lo-fi, Trance, Afrobeats o
+Dubstep entre el 30 y el 65 %; Ambiental, Synthwave y Bossa nova del 75 al 80 %) y Acordes en movimiento
+siempre.
 
 **Cambios automáticos** (pestaña *Canción*): al empezar cada vuelta de la gráfica, se puede cambiar solo la
 función, la función con su beat y sonido, o toda la canción. Se elige también cada cuántas vueltas
@@ -209,7 +213,8 @@ Todo es síntesis, sin samples ([js/instruments.js](js/instruments.js)):
 - **Sostenidos** (pueden hacer el glissando continuo): sintetizador suave, seno puro, sierra suave,
   lead sierra, chiptune de 8 bits, órgano, coro (voz "a" con formantes), silbido, ácido 303 (filtro que
   barre cada semicorchea), 808 deslizante, supersaw (siete sierras desafinadas, trance y hardstyle), pad
-  cálido, cuerdas, metales y flauta.
+  cálido, cuerdas, metales, flauta y wobble (un filtro resonante que se abre y se cierra en corcheas,
+  para el dubstep).
 - **Percusivos**: cencerro phonk (cencerro 808 afinado), campana, piano eléctrico, kalimba, tambor de acero
   y vibráfono (síntesis FM), pluck, clavinet, arpa, marimba y piano suave. En modo glissando siguen la
   curva a golpes, uno por subdivisión.
@@ -278,7 +283,9 @@ personalidad: asíntotas, senos anidados, pliegues triangulares, funciones a tro
 Patrones de 16 pasos con estilos Phonk (Memphis, medio tiempo con cencerro), Drift phonk, Funk brasileño
 (tamborzão), Drill, Jersey club, Lo-fi, Drum & bass, Chiptune, House, French house, Techno, Trap, Boom bap,
 Breakbeat, Reggaetón (dembow), Acid house, Funk, Hardstyle, Hardtek, Trance, Psytrance, Ambiental,
-Euclidiano y **Sin batería** (solo la melodía). Puedes editar el patrón haciendo clic en las casillas.
+Afrobeats (clave con aro, shaker y congas), Amapiano (con log drum), UK garage (2-step, con mucho swing),
+Dubstep (medio tiempo), Bossa nova, Cumbia (güiro y congas), Synthwave, Euclidiano y **Sin batería** (solo
+la melodía). Puedes editar el patrón haciendo clic en las casillas.
 
 Cada estilo suena con su **kit** ([js/drums.js](js/drums.js)):
 
@@ -293,6 +300,7 @@ Cada estilo suena con su **kit** ([js/drums.js](js/drums.js)):
 - **Hardtek**: bombo largo y distorsionado a más de 170 bpm.
 - **Psytrance**: bombo corto y seco para dejar sitio al bajo rodante, con zaps.
 - **Lo-fi**: filtrado y suave.
+- **Percusión (afro y latina)**: bombo redondo, aro, shaker, shaker largo y conga.
 - **Chip**: sonido de 8 bits.
 
 Los kits con bombo propio (French house, 909, Hardstyle, Hardtek, Psytrance) lo pasan por su propia

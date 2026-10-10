@@ -224,6 +224,29 @@
       },
     },
 
+    percu: {
+      name: 'Percusión (afro y latina)',
+      names: { snare: 'Aro', hat: 'Shaker', open: 'Shaker largo', perc: 'Conga' },
+      kick(E, t, v) { // redondo y corto, sin clic
+        E.tone(t, 'sine', 125, 52, 0.07, 0.32, v * 0.95);
+        E.noiseHit(t, 0.006, v * 0.12, 'highpass', 2500, 0.7);
+      },
+      snare(E, t, v) { // golpe de aro: un tono agudo muy corto y un clic de madera
+        E.tone(t, 'triangle', 820, 760, 0.01, 0.06, v * 0.8);
+        E.noiseHit(t, 0.03, v * 0.65, 'bandpass', 2500, 1.5);
+      },
+      clap(E, t, v) {
+        for (let k = 0; k < 3; k++) E.noiseHit(t + k * 0.01, 0.02, v * 1.4, 'bandpass', 1400, 1.1);
+        E.noiseHit(t + 0.03, 0.17, v * 1.25, 'bandpass', 1300, 0.9);
+      },
+      hat: (E, t, v) => E.noiseHit(t, 0.06, v * 0.68, 'bandpass', 6500, 1.2),   // shaker
+      open: (E, t, v) => E.noiseHit(t, 0.16, v * 0.62, 'bandpass', 6000, 1), // shaker largo
+      perc(E, t, v) { // conga: tono que baja un poco y el golpe de la piel
+        E.tone(t, 'sine', 330, 290, 0.03, 0.22, v * 0.6);
+        E.noiseHit(t, 0.015, v * 0.25, 'bandpass', 1500, 1.2);
+      },
+    },
+
     chip: {
       name: 'Chip (8 bits)',
       names: { perc: 'Blip' },

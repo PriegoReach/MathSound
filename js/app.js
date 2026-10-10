@@ -213,6 +213,7 @@
     const up = mode === 'acid' ? 12 : 0; // la 303 suena una octava por encima del 808
     const dur = mode === 'acid' ? stepDur * (steps[(i + 1) % 16]?.slide ? 1.1 : 0.75) // ligada: se encadena con la siguiente
       : mode === 'rolling' ? stepDur * 0.8
+      : mode === 'log' ? stepDur * Math.min(gap, 3) * 0.95
       : stepDur * Math.min(gap, 2) * 0.85;
     engine.bassNote(mode, t + hum(0.004), music.mtof(root + up + (st.oct || 0)), dur, { ...st, v: humV(st.v) });
   }

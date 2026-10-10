@@ -108,8 +108,8 @@
       extra.push(lfo);
       aux.push(lg);
     }
-    if (spec.wah && filters[0]) { // barrido del filtro en cada semicorchea (ácido)
-      const lfo = makeOsc(E, 'sawtooth', (E.p.bpm / 60) * 4, t);
+    if (spec.wah && filters[0]) { // barrido del filtro wahRate veces por pulso (ácido: semicorcheas)
+      const lfo = makeOsc(E, 'sawtooth', (E.p.bpm / 60) * (spec.wahRate ?? 4), t);
       const lg = ctx.createGain(); lg.gain.value = -spec.wah;
       lfo.connect(lg).connect(filters[0].frequency);
       extra.push(lfo);
@@ -273,6 +273,9 @@
     acid: { layers: [{ type: 'sawtooth' }], filter: { type: 'lowpass', f: 1300, q: 13 }, wah: 1000, level: 0.2, attack: 0.01 },
     sub808: { layers: [{ type: 'sine', ratio: 0.5 }, { type: 'triangle', ratio: 0.5, gain: 0.25 }], level: 0.33, attack: 0.01 },
     supersaw: { layers: SAWS([-28, -17, -8, 0, 8, 17, 28], 0.6), filter: { type: 'lowpass', f: 5500, q: 0.6 }, level: 0.2, attack: 0.01 },
+    // wobble: sierras, una cuadrada y un sub por un filtro resonante que se abre y se cierra en corcheas
+    wobble: { layers: [{ type: 'sawtooth' }, { type: 'square', detune: -7, gain: 0.5, pan: -0.3 }, { type: 'sawtooth', detune: 7, gain: 0.5, pan: 0.3 },
+      { type: 'sine', ratio: 0.5, gain: 0.5 }], filter: { type: 'lowpass', f: 750, q: 7 }, wah: 650, wahRate: 2, level: 0.16, attack: 0.01 },
     // cuerdas: tres sierras desafinadas y abiertas, filtro suave y vibrato lento; entran despacio
     strings: { layers: [{ type: 'sawtooth', detune: -10, pan: -0.45 }, { type: 'sawtooth', detune: 10, pan: 0.45 }, { type: 'sawtooth', gain: 0.6 }],
       filter: { type: 'lowpass', f: 2800, q: 0.6 }, vibrato: 7, vibratoRate: 5.2, level: 0.22, attack: 0.25, release: 0.6 },
@@ -299,6 +302,7 @@
     organ: { name: 'Órgano', sustain: true, voice: (E, t, f, o) => layered(E, t, f, SPEC.organ, o), hit: held(SPEC.organ) },
     choir: { name: 'Coro (voz "a")', sustain: true, voice: (E, t, f, o) => layered(E, t, f, SPEC.choir, o), hit: held(SPEC.choir) },
     whistle: { name: 'Silbido', sustain: true, voice: (E, t, f, o) => layered(E, t, f, SPEC.whistle, o), hit: held(SPEC.whistle) },
+    wobble: { name: 'Wobble (dubstep)', sustain: true, drive: 0.3, voice: (E, t, f, o) => layered(E, t, f, SPEC.wobble, o), hit: held(SPEC.wobble) },
     acid: { name: 'Ácido 303', sustain: true, drive: 0.25, voice: (E, t, f, o) => layered(E, t, f, SPEC.acid, o),
       hit: pluck({ layers: [{ type: 'sawtooth' }], level: 0.24, bright: 9, q: 12, sweep: 0.5 }) },
     sub808: { name: '808 deslizante', sustain: true, drive: 0.3, voice: (E, t, f, o) => layered(E, t, f, SPEC.sub808, o), hit: hit808 },

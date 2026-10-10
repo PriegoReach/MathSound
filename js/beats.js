@@ -46,9 +46,11 @@
   // Líneas de bajo: en qué semicorcheas toca el bajo y cómo (v, acento, ligado, octava arriba).
   //   808: una nota en cada bombo (no necesita pasos) · acid: línea 303 con acentos y ligados
   //   offbeat: a contratiempo (trance, hardstyle) · rolling: tres semicorcheas tras cada bombo (psytrance)
-  //   funk: síncopas con saltos de octava y notas fantasma
+  //   funk: síncopas con saltos de octava y notas fantasma · log: log drum del amapiano (síncopas graves que
+  //   a veces se arrastran desde arriba) · pulse: corcheas constantes (synthwave)
   const BASS_MODES = {
     '808': '808 en cada bombo', acid: 'Ácido 303', offbeat: 'A contratiempo', rolling: 'Rodante (psytrance)', funk: 'Funk',
+    log: 'Log drum (amapiano)', pulse: 'Corcheas (synthwave)',
   };
   function bassLine(mode) {
     const steps = new Array(16).fill(null);
@@ -72,6 +74,13 @@
         pick([[0, 3, 6, 7, 10, 12, 14], [0, 2, 3, 7, 8, 10, 13, 14], [0, 3, 4, 6, 10, 11, 14]])
           .forEach((i) => on(i, i % 4 === 0 ? 0.9 : 0.72, { oct: chance(0.3) ? 12 : 0 }));
         for (let i = 1; i < 16; i += 2) if (!steps[i] && chance(0.2)) on(i, 0.35); // notas fantasma
+        break;
+      case 'log':
+        pick([[0, 3, 6, 10, 12, 14], [2, 3, 6, 9, 10, 14], [0, 3, 7, 10, 11, 14]])
+          .forEach((i) => on(i, 0.85, { slide: chance(0.25), oct: chance(0.2) ? 12 : 0 }));
+        break;
+      case 'pulse':
+        for (let i = 0; i < 16; i += 2) on(i, i % 4 === 0 ? 0.85 : 0.7);
         break;
       default:
         return null; // 808: sigue al bombo
@@ -342,6 +351,82 @@
         put(P, 'kick', [0, ...(chance(0.5) ? [10] : [])], 0.55);
         range(2, 16, 4).forEach((s) => { if (chance(0.5)) put(P, 'hat', [s], 0.18); });
         if (chance(0.5)) put(P, 'perc', pickSome([6, 14], 1), 0.3);
+      },
+    },
+    afrobeats: {
+      name: 'Afrobeats', kit: 'percu', mel: ['tresillo', 'contratiempo', 'galope'],
+      make(P) { // bombo que respira, aro con la clave, shaker en semicorcheas y congas
+        P.bpm = randInt(100, 115); P.swing = rand(0.04, 0.12);
+        put(P, 'kick', [0, 6, 8, ...(chance(0.5) ? [14] : [])]);
+        put(P, 'snare', [0, 3, 6, 10, 12], 0.6); // clave 3-2
+        if (chance(0.5)) put(P, 'clap', [12], 0.6);
+        range(0, 16).forEach((s) => put(P, 'hat', [s], s % 4 === 2 ? 0.5 : 0.24));
+        put(P, 'perc', pickSome([2, 5, 7, 9, 11, 13, 15], randInt(3, 4)), 0.55);
+      },
+    },
+    amapiano: {
+      name: 'Amapiano', kit: 'percu', bass: 'log', mel: ['contratiempo', 'pregunta', 'tresillo'],
+      make(P) { // bombo suave a negras, shakers, palmas en 2 y 4 y el log drum sincopado
+        P.bpm = randInt(110, 115); P.swing = rand(0.05, 0.12);
+        put(P, 'kick', [0, 4, 8, 12], 0.75);
+        range(0, 16).forEach((s) => put(P, 'hat', [s], s % 2 ? 0.22 : 0.34));
+        put(P, 'clap', [4, 12], 0.6);
+        if (chance(0.6)) put(P, 'perc', pickSome([3, 6, 11, 14], 2), 0.45);
+        if (chance(0.5)) put(P, 'open', [6, 14], 0.35);
+      },
+    },
+    ukgarage: {
+      name: 'UK garage (2-step)', kit: 'k909', mel: ['contratiempo', 'galope', 'tresillo'],
+      make(P) { // bombo que salta (sin el del 3), caja en 2 y 4 y hats con mucho swing
+        P.bpm = randInt(130, 136); P.swing = rand(0.18, 0.3);
+        put(P, 'kick', [0, ...(chance(0.6) ? [7, 10] : [10])]);
+        put(P, 'snare', [4, 12], 0.85);
+        range(0, 16, 2).forEach((s) => put(P, 'hat', [s], s % 4 ? 0.45 : 0.3));
+        range(1, 16, 2).forEach((s) => { if (chance(0.35)) put(P, 'hat', [s], 0.25); });
+        if (chance(0.5)) put(P, 'open', [6, 14], 0.4);
+        if (chance(0.4)) put(P, 'perc', [pick([3, 11, 15])], 0.4);
+      },
+    },
+    dubstep: {
+      name: 'Dubstep', kit: 'k808', mel: ['corcheas', 'pregunta', 'contratiempo'],
+      make(P) { // medio tiempo: bombo al principio, caja fuerte en el 3 y hats dispersos
+        P.bpm = randInt(138, 142);
+        put(P, 'kick', [0, ...(chance(0.5) ? [10] : []), ...(chance(0.3) ? [3] : [])]);
+        put(P, 'snare', [8]); put(P, 'clap', [8], 0.8);
+        range(0, 16, 2).forEach((s) => { if (chance(0.55)) put(P, 'hat', [s], 0.35); });
+        if (chance(0.4)) put(P, 'perc', [pick([6, 14])], 0.45);
+        if (chance(0.4)) { put(P, 'hat', [14, 15], 0.4); P.rolls[15] = 2; }
+      },
+    },
+    bossa: {
+      name: 'Bossa nova', kit: 'percu', mel: ['pregunta', 'tresilloLargo', 'contratiempo'],
+      make(P) { // bombo (surdo) en 1, 2y, 3 y 4y, aro con la clave de bossa y shaker en corcheas
+        P.bpm = randInt(124, 140);
+        put(P, 'kick', [0, 6, 8, 14], 0.7);
+        put(P, 'snare', [0, 3, 6, 10, 13], 0.5);
+        range(0, 16, 2).forEach((s) => put(P, 'hat', [s], 0.28));
+        range(1, 16, 2).forEach((s) => { if (chance(0.5)) put(P, 'hat', [s], 0.16); });
+      },
+    },
+    cumbia: {
+      name: 'Cumbia', kit: 'percu', mel: ['galope', 'corcheas', 'tresillo'],
+      make(P) { // bombo en 1 y 3, güiro largo-corto-corto, aro en 2 y 4 y congas a contratiempo
+        P.bpm = randInt(90, 100);
+        put(P, 'kick', [0, 8], 0.9);
+        [0, 2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15].forEach((s) => put(P, 'hat', [s], s % 2 ? 0.25 : 0.4));
+        put(P, 'snare', [4, 12], 0.5);
+        put(P, 'perc', [2, 6, 10, 14], 0.5);
+        if (chance(0.5)) put(P, 'open', [6, 14], 0.3);
+      },
+    },
+    synthwave: {
+      name: 'Synthwave', kit: 'k808', bass: 'pulse', mel: ['corcheas', 'semicorcheas', 'pregunta'],
+      make(P) { // años 80: bombo a negras o en 1 y 3, caja grande en 2 y 4 y hats en corcheas
+        P.bpm = randInt(90, 112);
+        put(P, 'kick', chance(0.5) ? [0, 4, 8, 12] : [0, 8, 10]);
+        put(P, 'snare', [4, 12]); put(P, 'clap', [4, 12], 0.6);
+        range(0, 16, 2).forEach((s) => put(P, 'hat', [s], 0.35));
+        if (chance(0.4)) put(P, 'open', [14], 0.4);
       },
     },
     euclid: {
