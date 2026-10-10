@@ -258,6 +258,19 @@ h2 { font-size: 1rem; font-weight: 600; line-height: 1.3; }
 .readout dd { margin: 0; color: var(--tinta); font: 1.0625rem var(--font-math); }
 .readout dd.num { min-width: 6ch; }
 
+/* secciones de la canción (modo canción): la que suena, en tinta */
+.form-strip {
+  display: flex; flex-wrap: wrap; gap: .35rem;
+  margin: 0;
+  padding: .65rem 1.5rem .8rem;
+  border-top: 1px solid var(--borde);
+  list-style: none;
+  color: var(--grafito);
+  font: 500 .8125rem var(--font-ui-narrow);
+}
+.form-strip li { padding: .1rem .6rem; border: 1px solid var(--borde); border-radius: 999px; }
+.form-strip li.now { background: var(--tinta); border-color: var(--tinta); color: var(--hoja); font-weight: 600; }
+
 /* ---------- Secuenciador de batería ---------- */
 .section-head {
   display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap;
@@ -297,6 +310,7 @@ h2 { font-size: 1rem; font-weight: 600; line-height: 1.3; }
 .track[data-tr=bass] .name, .track[data-tr=mel] .name { color: var(--tinta); font-weight: 600; }
 .track[data-tr=bass] .cell.on { background: var(--ocre); }
 .track[data-tr=mel] .cell.on { background: var(--violeta); }
+.track.is-muted { opacity: .35; } /* callada por la sección de la canción */
 
 .beat .controls { margin-top: 1.25rem; }
 .options { display: flex; flex-wrap: wrap; gap: .6rem 1.75rem; margin-top: 1.1rem; }
@@ -337,6 +351,7 @@ kbd {
   .transport .btn.icon { flex: none; }
   .sheet-head { padding: 1rem 1rem .25rem; }
   .readout { gap: .25rem 1.25rem; padding: .6rem 1rem; }
+  .form-strip { padding: .6rem 1rem .7rem; }
   .track { grid-template-columns: 3.75rem repeat(16, minmax(0, 1fr)); gap: 2px; }
   .track .name { font-size: .75rem; }
   .cell { height: 1.5rem; border-radius: 2px; font-size: .5625rem; }

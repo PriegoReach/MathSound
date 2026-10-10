@@ -4,10 +4,11 @@
 //   el tiempo avanza en pulsos (beats) → cada pulso mueve el cursor `xPerBeat` unidades en x
 //   → se evalúa y = f(x) → y se reparte en un rango de semitonos → frecuencia del sintetizador.
 // La batería corre en paralelo sobre la misma línea de tiempo, en semicorcheas, y los acordes
-// (js/chords.js) cambian cada compás o cada medio compás.
+// (js/chords.js) cambian cada compás o cada medio compás. En modo canción, cada vuelta pertenece a una
+// sección (js/form.js) que decide qué capas suenan.
 (function (MS) {
   'use strict';
-  const { expr, gen, music, beats, CHORDS: CH } = MS;
+  const { expr, gen, music, beats, CHORDS: CH, FORM } = MS;
   const $ = (id) => document.getElementById(id);
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
   const setLabel = (id, text) => { $(id).querySelector('span').textContent = text; };
@@ -33,6 +34,7 @@
     // registro de las voces e intro en espiral al empezar desde el principio
     chords: false, chordProg: 'video', chordRich: 5, chordVoices: 9, chordBars: 1, chordInst: 'pad',
     chordVoicing: 'fijo', chordIntro: false,
+    form: 'loop', // estructura: 'loop' (todo suena siempre) o 'song' (intro, estrofa, drop… ver js/form.js)
     ghost: true, notes: true, bw: false,
   };
 
@@ -50,6 +52,8 @@
     chord: null, chordLog: [], // acorde que suena y los últimos cambios { b, chord } (para mostrarlos)
     chordFrom: null, // paso en el que empezó la progresión (al encender los acordes y en cada drop)
     melFrom: 0, // la melodía no suena antes de este instante (intro de los acordes)
+    arr: FORM.arrangement(true), songStart: 0, // secciones de la canción y vuelta en la que empezó
+    secKey: null, // sección cuya mezcla ya se aplicó
   };
 
   // Patrones del modo arpegio (índices de music.chordTone: 0 tónica, 1 tercera, 2 quinta, 3 octava…)
@@ -65,12 +69,49 @@
   const passOf = (b) => Math.floor(b / beatsPerPass() + 1e-9);
   const xOf = (b) => state.xMin + expr.mod(b, beatsPerPass()) * state.xPerBeat;
 
+  // ======================= Estructura de canción =======================
+  // Sección de la vuelta p (null en modo bucle, o antes de que empiece la canción)
+  function sectionAt(p) {
+    if (state.form !== 'song' || p < sch.songStart) return null;
+    return FORM.sectionAt(sch.arr, p - sch.songStart, beatsPerPass());
+  }
+
+  // ¿Hay cambio automático al empezar la vuelta p? En modo canción, "todo" cambia al acabar la canción
+  function changeAt(p) {
+    if (!state.auto || p <= sch.startPass) return false;
+    if (state.form === 'song' && state.auto === 'all') return p - sch.songStart >= FORM.totalPasses(sch.arr, beatsPerPass());
+    return (p - sch.startPass) % state.autoEvery === 0;
+  }
+
+  // Capas que suenan en una sección; en el puente, con acordes, la melodía queda de fondo
+  function mixOf(sec) {
+    if (!sec) return FORM.FULL;
+    return { ...sec, mel: state.chords && sec.melWithChords !== undefined ? sec.melWithChords : sec.mel };
+  }
+
+  // Al entrar en una sección, el motor cambia el volumen y el filtro de la melodía y los acordes
+  function applySection(sec, t, sb) {
+    const key = sec ? `${sch.songStart}:${sec.round}:${sec.index}:${state.chords}` : 'bucle';
+    if (key === sch.secKey) return;
+    sch.secKey = key;
+    const end = sec ? (passOf(sb) - sec.offset + sec.passes) * beatsPerPass() : sb;
+    engine.section(mixOf(sec), t, ((end - sb) * 60) / state.bpm);
+  }
+
+  // Bucle o canción. Al pasar a canción, empieza por la intro en la vuelta siguiente.
+  function setForm(form) {
+    state.form = form;
+    sch.secKey = null;
+    if (form === 'song') sch.songStart = sch.playing ? passOf(beatAt(engine.now)) + 1 : passOf(sch.pausedBeat);
+    $('formSel').value = form;
+  }
+
   // Función que suena en la vuelta p. Al entrar en una vuelta nueva se aplican los cambios automáticos.
   function fnForPass(p) {
     let fn = sch.fnByPass.get(p);
     if (fn) return fn;
     fn = state.fn;
-    if (p > sch.startPass && state.auto && (p - sch.startPass) % state.autoEvery === 0) {
+    if (changeAt(p)) {
       const boundary = p * beatsPerPass();
       if (state.auto === 'all') fn = newSong(boundary);
       else if (state.auto === 'variation') { newBeatAndSound(boundary); fn = genreFunction(); }
@@ -89,6 +130,10 @@
     const i = s % 16;
     const stepDur = 60 / state.bpm / 4;
 
+    const sec = sectionAt(passOf(sb));
+    applySection(sec, t, sb);
+    const mix = mixOf(sec);
+
     // el primer paso después de un build-up es el drop
     if (sch.build && sb >= sch.build.end - 1e-6) { engine.drop(t); sch.build = null; }
     const bu = buildFor(sb);
@@ -98,7 +143,7 @@
     else {
       for (const tr of beats.TRACKS) {
         const v = P.tracks[tr][i];
-        if (!v) continue;
+        if (!v || !mix.drums.includes(tr)) continue;
         const n = tr === 'hat' ? P.rolls[i] : 1; // redobles de hi-hat
         for (let k = 0; k < n; k++) engine.drum(tr, t + (k * stepDur) / n + hum(0.009), humV(v * (k ? 0.75 : 1)));
       }
@@ -109,7 +154,7 @@
     const q = m === null ? null : music.quantize(m, state.tonic, state.scale);
     if (state.chords) scheduleChords(s, t, sb, m, q, bu);
     if (q !== null && !intro) {
-      if (state.bass && !bu) scheduleBass(i, t, q, stepDur);
+      if (state.bass && !bu && mix.bass) scheduleBass(i, t, q, stepDur);
       const onSub = s % state.sub === 0;
       const tn = t + hum(0.005);
       if (state.mode === 'steps' && onSub) {
@@ -129,7 +174,8 @@
         engine.note(tn, music.mtof(n), Math.max(0.1, stepDur * state.sub * 0.9), humV(i % 4 === 0 ? 0.85 : 0.68));
       }
     }
-    sch.events.push({ t, step: i, kick: !bu && P.tracks.kick[i] > 0, hit: !bu && (P.tracks.snare[i] > 0 || P.tracks.clap[i] > 0) });
+    const on = (tr) => !bu && mix.drums.includes(tr) && P.tracks[tr][i] > 0;
+    sch.events.push({ t, step: i, kick: on('kick'), hit: on('snare') || on('clap') });
   }
 
   // ======================= Bajo =======================
@@ -251,18 +297,20 @@
   }
 
   // ======================= Build-up y drop =======================
-  // Devuelve el build-up que cubre el pulso b: el pedido con el botón o, con "build-up antes de
-  // cada cambio", uno automático en los últimos compases antes de la vuelta que trae el cambio.
+  // Devuelve el build-up que cubre el pulso b: el pedido con el botón o uno automático en los últimos
+  // compases antes de la vuelta siguiente si esa vuelta trae un cambio automático (con "build-up antes de
+  // cada cambio") o, en modo canción, si con ella empieza un drop.
   function buildFor(b) {
     if (sch.build && b >= sch.build.start - 1e-6 && b < sch.build.end - 1e-6) return sch.build;
-    if (state.autoBuild && state.auto) {
-      const bpp = beatsPerPass();
-      const p = Math.floor(b / bpp + 1e-9) + 1; // la vuelta siguiente
-      const B = p * bpp, L = Math.min(8, bpp / 2);
-      if (p > sch.startPass && (p - sch.startPass) % state.autoEvery === 0 && b >= B - L - 1e-6) {
-        if (!sch.build || sch.build.end !== B) sch.build = { start: B - L, end: B, scheduled: false };
-        return sch.build;
-      }
+    const bpp = beatsPerPass();
+    const p = Math.floor(b / bpp + 1e-9) + 1; // la vuelta siguiente
+    const B = p * bpp, L = Math.min(8, bpp / 2);
+    if (b < B - L - 1e-6) return null;
+    const next = sectionAt(p);
+    const toDrop = !!next?.build && next.offset === 0 && sectionAt(p - 1)?.type !== next.type;
+    if ((state.autoBuild && changeAt(p)) || toDrop) {
+      if (!sch.build || sch.build.end !== B) sch.build = { start: B - L, end: B, scheduled: false };
+      return sch.build;
     }
     return null;
   }
@@ -374,7 +422,8 @@
     sch.chordLog = [];
     sch.chordFrom = null;
     sch.melFrom = 0;
-    if (sch.pausedBeat === 0) chordLayer.clear();
+    sch.secKey = null;
+    if (sch.pausedBeat === 0) { chordLayer.clear(); sch.songStart = 0; } // la canción vuelve a la intro
     // intro de los acordes: dos compases de espiral sin batería ni melodía y, en el drop, el primer acorde
     if (state.chords && state.chordIntro && sch.pausedBeat === 0) {
       sch.build = { start: 0, end: 8, scheduled: false, intro: true };
@@ -521,6 +570,9 @@
     else state.chordIntro = false;
     setChords(withChords, atBeat);
     sch.chord = sch.chordFrom = null; // la progresión de la canción nueva empieza por su primer acorde
+    // la estructura de la canción nueva empieza por la intro (con drops si es un género de club)
+    sch.arr = FORM.arrangement(G.drops !== false);
+    sch.songStart = passOf(atBeat ?? (sch.playing ? beatAt(engine.now) : sch.pausedBeat));
     newBeatAndSound(atBeat);
     return genreFunction();
   }
@@ -579,6 +631,7 @@
   const nameEls = {};
   const cellsByCol = [];
   let nowCol = -1, melRow = null, bassRow = null;
+  const rowEls = {};
   const ROWS = [...beats.TRACKS, 'bass', 'mel']; // tras la batería: la línea de bajo y el ritmo de la melodía
   const ROW_NAMES = { bass: 'Bajo', mel: 'Melodía' };
 
@@ -603,6 +656,7 @@
         (cellsByCol[i] = cellsByCol[i] || []).push(c);
       }
       grid.append(row);
+      rowEls[tr] = row;
       if (tr === 'mel') melRow = row;
       if (tr === 'bass') bassRow = row;
     }
@@ -688,6 +742,34 @@
     if (ratio < 1) el.style.fontSize = Math.max(11, parseFloat(getComputedStyle(el).fontSize) * ratio * 0.98) + 'px';
   }
 
+  // Estructura: las secciones de la canción bajo la gráfica, con la que suena marcada, y las pistas que
+  // la sección deja calladas atenuadas en el secuenciador
+  let formShown = {};
+  function showForm(sec) {
+    const strip = $('formStrip');
+    if (formShown.form !== state.form || formShown.arr !== sch.arr) {
+      strip.hidden = state.form !== 'song';
+      strip.replaceChildren(...sch.arr.map((s) => {
+        const li = document.createElement('li');
+        li.textContent = FORM.SECTIONS[s.type].name;
+        return li;
+      }));
+      formShown = { form: state.form, arr: sch.arr, index: -2, mute: null };
+    }
+    const index = sec ? sec.index : -1;
+    if (index !== formShown.index) {
+      [...strip.children].forEach((li, i) => li.classList.toggle('now', i === index));
+      formShown.index = index;
+    }
+    const mix = mixOf(sec);
+    const muted = ROWS.filter((tr) => (tr === 'bass' ? !mix.bass : tr === 'mel' ? !mix.mel : !mix.drums.includes(tr)));
+    const mute = muted.join();
+    if (mute !== formShown.mute) {
+      for (const tr of ROWS) rowEls[tr].classList.toggle('is-muted', muted.includes(tr));
+      formShown.mute = mute;
+    }
+  }
+
   // Notas de la escala para la pauta de la gráfica (se recalculan solo si cambia algo)
   let ladder = { key: '' };
   function scaleLines(fn) {
@@ -716,6 +798,8 @@
     }
     if (fn !== shownFn) showFunction(fn);
     pulse *= 0.86;
+
+    showForm(sectionAt(passOf(b)));
 
     // el botón de build-up se marca mientras suena uno
     const building = !!(sch.playing && sch.build && b >= sch.build.start && b < sch.build.end);
@@ -868,6 +952,7 @@
     $('autoSel').value = state.auto;
     $('autoEvery').value = state.autoEvery;
     $('autoBuild').checked = state.autoBuild;
+    $('formSel').value = state.form;
     $('bassOn').checked = state.bass;
     $('bassSel').value = state.bassMode;
     $('humanize').checked = state.humanize;
@@ -927,6 +1012,7 @@
     on('autoSel', 'change', (e) => { state.auto = e.target.value; });
     on('autoEvery', 'change', (e) => { state.autoEvery = +e.target.value; });
     on('autoBuild', 'change', (e) => { state.autoBuild = e.target.checked; });
+    on('formSel', 'change', (e) => setForm(e.target.value));
     on('btnDrop', 'click', requestBuild);
 
     on('mode', 'change', (e) => setMode(e.target.value));
@@ -995,7 +1081,7 @@
   }
 
   // acceso desde la consola del navegador para experimentar / depurar
-  MS.app = { state, sch, engine, plot, chordLayer, tick, play, pause, restart, setMode, setInstrument, setFunction, setChords,
+  MS.app = { state, sch, engine, plot, chordLayer, sectionAt, tick, play, pause, restart, setMode, setInstrument, setFunction, setChords, setForm,
     newBeat, newSong, randomFn, randomAll, requestBuild, bassSteps };
 
   // ======================= Inicio =======================

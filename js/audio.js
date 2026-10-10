@@ -1,12 +1,13 @@
 // Motor de audio con Web Audio API: todo es síntesis, no se usan samples.
-//   melodía → melIn → distorsión → melBus → duck ─┬───→ master → paso alto (build-up) → compresor → salida
+//   melodía → melIn → distorsión → melBus → sección → duck ─┬→ master → paso alto (build-up) → compresor → salida
 //                                                 ├→ reverb
 //                                                 └→ delay
 //   batería → drumIn → distorsión → filtro → drumBus → master (+ un poco de reverb)
 //   bombo   → kickIn → distorsión → realce grave (EQ) → filtro → drumBus   (kits con bombo propio)
 //   bajo    → bassIn → distorsión → bassBus → duck → master
-//   acordes → chordIn (chordBus) → duck ─┬→ master                              (voces de js/chords.js)
+//   acordes → chordIn (chordBus) → sección → duck ─┬→ master                    (voces de js/chords.js)
 //                                        └→ reverb
+// "sección" es un paso bajo y un volumen que cambian con la estructura de la canción (ver section).
 // Estéreo: el delay va y vuelve entre izquierda y derecha, los hats y la percusión suenan un poco a los
 // lados, las voces de los acordes se reparten (ver stereo) y bombo, caja, bajo y melodía van al centro.
 // Los timbres de la melodía están en js/instruments.js y los kits de batería en js/drums.js.
@@ -94,7 +95,7 @@
 
       this.melBus = gain(0);
       this.melDuck = gain(1, this.master);
-      this.melBus.connect(this.melDuck);
+      this.melSect = this.sectionStage(this.melBus, this.melDuck);
       this.melRev = gain(0, this.reverb); this.melDuck.connect(this.melRev);
       this.melDel = gain(0, this.delay); this.melDuck.connect(this.melDel);
       this.melDrive = this.driveStage(this.melBus);
@@ -129,7 +130,7 @@
       // acordes: sin distorsión, con su propia reverb y el mismo bombeo del sidechain que la melodía
       this.chordBus = gain(0);
       this.chordDuck = gain(1, this.master);
-      this.chordBus.connect(this.chordDuck);
+      this.chordSect = this.sectionStage(this.chordBus, this.chordDuck);
       this.chordDuck.connect(gain(0.3, this.reverb));
       this.chordIn = this.chordBus;
 
@@ -140,6 +141,32 @@
       for (const k of Object.keys(this.p)) this.set(k, this.p[k]);
       this.setKit(this.kit);
       return ctx;
+    }
+
+    // Paso bajo y volumen de una sección de la canción, entre `from` y `to`
+    sectionStage(from, to) {
+      const lp = this.ctx.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 20000; lp.Q.value = 0.5;
+      const g = this.ctx.createGain();
+      from.connect(lp).connect(g).connect(to);
+      return { lp, g };
+    }
+
+    // Mezcla de una sección (js/form.js) desde el instante t: volumen de la melodía y de los acordes
+    // (mel, chords, de 0 a 1) y su paso bajo, que va de lp[0] a lp[1] Hz a lo largo de `dur` segundos.
+    // Los volúmenes cambian en `fade` segundos.
+    section({ mel = 1, chords = 1, lp = [20000, 20000] }, t, dur = 0, fade = 0.12) {
+      if (!this.ctx) return;
+      t = Math.max(t, this.now);
+      const hold = (p) => { if (p.cancelAndHoldAtTime) p.cancelAndHoldAtTime(t); else { p.cancelScheduledValues(t); p.setValueAtTime(p.value, t); } };
+      for (const [S, v] of [[this.melSect, mel], [this.chordSect, chords]]) {
+        hold(S.g.gain);
+        S.g.gain.linearRampToValueAtTime(v, t + fade);
+        const f = S.lp.frequency;
+        hold(f);
+        f.exponentialRampToValueAtTime(lp[0], t + 0.05);
+        if (lp[1] !== lp[0]) f.exponentialRampToValueAtTime(lp[1], t + Math.max(0.1, dur));
+      }
     }
 
     // Saturador: entra bajado ×¼ para que la parte lineal tenga margen, y sale compensado

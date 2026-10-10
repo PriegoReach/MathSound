@@ -8,6 +8,7 @@
 //   chords (opcional): acordes de js/chords.js. p = probabilidad de que la canción los lleve; inst, prog,
 //   rich (notas por acorde), voices, bars (compases por acorde), voicing, intro (espiral al empezar) y vol
 //   (volumen de los acordes; si no se indica, entre 0,45 y 0,55)
+//   drops: false en los géneros sin build-up ni drop: en modo canción tienen estribillos
 // Un nombre repetido en una lista pesa más en el sorteo.
 (function (MS) {
   'use strict';
@@ -38,7 +39,7 @@
       drive: [0.1, 0.3], reverb: [0.1, 0.3], delay: [0, 0.2], families: RHYTHMIC, refs: 0.1,
     },
     reggaeton: {
-      name: 'Reggaetón', styles: ['dembow'], inst: ['pluck', 'marimba', 'synth', 'bell', 'epiano'],
+      name: 'Reggaetón', drops: false, styles: ['dembow'], inst: ['pluck', 'marimba', 'synth', 'bell', 'epiano'],
       scales: ['Menor natural', 'Frigia', 'Menor armónica', 'Dórica'], modes: ['pattern', 'pattern', 'steps', 'harp'],
       range: [12, 19, 24], octave: [0], drive: [0, 0.1], reverb: [0.15, 0.35], delay: [0.1, 0.3], families: RHYTHMIC, refs: 0.05,
     },
@@ -75,13 +76,13 @@
       chords: { p: 0.3, inst: ['pad', 'choir'], prog: ['emotiva', 'epica', 'video'], rich: [4, 5], voices: [4, 6], bars: [2] },
     },
     lofi: {
-      name: 'Lo-fi', styles: ['lofi', 'boombap'], inst: ['epiano', 'marimba', 'whistle', 'organ'],
+      name: 'Lo-fi', drops: false, styles: ['lofi', 'boombap'], inst: ['epiano', 'marimba', 'whistle', 'organ'],
       scales: ['Dórica', 'Pentatónica mayor', 'Mayor', 'Blues'], modes: ['harp', 'pattern', 'steps'], range: [12, 19], octave: [0],
       drive: [0, 0.1], reverb: [0.3, 0.55], delay: [0.1, 0.3], families: SMOOTH, refs: 0,
       chords: { p: 0.5, inst: ['pad', 'organ', 'synth'], prog: ['jazz', 'video', 'emotiva', 'funcion'], rich: [4, 5], voices: [4, 6], bars: [1, 2] },
     },
     chip: {
-      name: 'Chiptune', styles: ['chip', 'euclid'], inst: ['chip'],
+      name: 'Chiptune', drops: false, styles: ['chip', 'euclid'], inst: ['chip'],
       scales: ['Mayor', 'Pentatónica mayor', 'Blues', 'Menor natural'], modes: ['steps', 'pattern', 'glide'], range: [12, 19, 24], octave: [0, 1],
       drive: [0, 0], reverb: [0, 0.15], delay: [0, 0.2], families: [...RHYTHMIC, 'Contador binario', 'Seno escalonado'], refs: 0.1,
     },
@@ -91,7 +92,7 @@
       drive: [0.1, 0.3], reverb: [0.1, 0.3], delay: [0.15, 0.35], families: [...RHYTHMIC, 'Senos anidados', 'Tangente recortada'], refs: 0.15,
     },
     funky: {
-      name: 'Funk y disco', styles: ['funky', 'frenchhouse'], inst: ['epiano', 'organ', 'lead', 'synth', 'pluck'],
+      name: 'Funk y disco', drops: false, styles: ['funky', 'frenchhouse'], inst: ['epiano', 'organ', 'lead', 'synth', 'pluck'],
       scales: ['Dórica', 'Mixolidia', 'Pentatónica menor', 'Blues'], modes: ['pattern', 'harp', 'steps'], range: [12, 19], octave: [0],
       drive: [0, 0.15], reverb: [0.15, 0.35], delay: [0.1, 0.25], families: RHYTHMIC, refs: 0.05,
       chords: { p: 0.3, inst: ['organ', 'synth'], prog: ['jazz', 'funcion'], rich: [4], voices: [4], bars: [0.5, 1] },
@@ -121,14 +122,14 @@
       families: [...WILD, ...RHYTHMIC], refs: 0.25,
     },
     ambient: { // atmósfera tranquila de piano y pads, con composición propia
-      name: 'Ambiental', styles: ['ambient'], inst: ['piano', 'piano', 'pad', 'epiano', 'marimba'],
+      name: 'Ambiental', drops: false, styles: ['ambient'], inst: ['piano', 'piano', 'pad', 'epiano', 'marimba'],
       scales: ['Mayor', 'Lidia', 'Pentatónica mayor', 'Dórica'], modes: ['harp', 'pattern', 'harp'], range: [12, 19], octave: [0, 1],
       drive: [0, 0], reverb: [0.55, 0.8], delay: [0.2, 0.45], families: SMOOTH, refs: 0,
       chords: { p: 0.75, inst: ['pad', 'pad', 'choir', 'sine'], prog: ['video', 'pop', 'emotiva', 'funcion'], rich: [4, 5], voices: [6, 9],
         bars: [1, 2], voicing: ['fijo', 'fijo', 'curva'], vol: [0.55, 0.7] },
     },
     acordes: { // el video de la progresión de acordes: nueve voces que se deslizan y la espiral del principio
-      name: 'Acordes en movimiento (video)', styles: ['none', 'none', 'ambient', 'lofi', 'trance', 'house'],
+      name: 'Acordes en movimiento (video)', drops: false, styles: ['none', 'none', 'ambient', 'lofi', 'trance', 'house'],
       inst: ['piano', 'bell', 'epiano', 'pluck', 'marimba'], scales: ['Mayor', 'Mayor', 'Lidia', 'Menor natural', 'Dórica'],
       modes: ['harp', 'arp', 'arp', 'steps', 'pattern'], range: [12, 19], octave: [1], drive: [0, 0.05], reverb: [0.35, 0.6],
       delay: [0.15, 0.35], families: SMOOTH, refs: 0,

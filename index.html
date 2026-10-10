@@ -69,6 +69,7 @@
           <div><dt>Frecuencia</dt><dd id="roHz">–</dd></div>
           <div hidden><dt>Acorde</dt><dd id="roChord">–</dd></div>
         </dl>
+        <ol id="formStrip" class="form-strip" hidden aria-label="Secciones de la canción"></ol>
       </section>
 
       <section class="beat" aria-labelledby="beatTitle">
@@ -119,6 +120,12 @@
           </button>
           <select id="presetSel" class="grow" aria-label="Ejemplos"></select>
         </div>
+        <label class="inline">Estructura
+          <select id="formSel">
+            <option value="loop">bucle: todo suena siempre</option>
+            <option value="song">canción: intro, estrofa, drop, puente y final</option>
+          </select>
+        </label>
         <div class="inline">
           <label class="inline">Al empezar cada vuelta, cambiar
             <select id="autoSel">
@@ -252,6 +259,7 @@
   <script defer src="js/drums.js"></script>
   <script defer src="js/audio.js"></script>
   <script defer src="js/chords.js"></script>
+  <script defer src="js/form.js"></script>
   <script defer src="js/plot.js"></script>
   <script defer src="js/app.js"></script>
 </body>

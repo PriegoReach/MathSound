@@ -146,6 +146,26 @@ el 30 y el 55 % de las canciones), Ambiental (75 %) y Acordes en movimiento (sie
 función, la función con su beat y sonido, o toda la canción. Se elige también cada cuántas vueltas
 (1, 2 o 4). Con eso queda sonando como un generador infinito.
 
+### Estructura de canción
+
+En *Función*, **Estructura** elige entre *bucle* (todo suena siempre, como antes) y *canción*: la
+canción pasa por secciones que meten y sacan capas ([js/form.js](js/form.js)), y debajo de la gráfica se
+ve en cuál está.
+
+| Sección    | Qué suena                                                                     |
+|------------|-------------------------------------------------------------------------------|
+| Intro      | hats y percusión, sin bajo; la melodía y los acordes empiezan filtrados y se abren |
+| Estrofa    | bombo, caja, hats y bajo, sin palmas ni hat abierto                            |
+| Drop       | todo; llega después de un build-up automático                                 |
+| Estribillo | todo, sin build-up (en lo-fi, ambiental, reggaetón, chiptune, funk y disco y acordes en movimiento) |
+| Puente     | sin batería ni bajo: la melodía sola o, si hay acordes, los acordes con la melodía de fondo |
+| Final      | bombo, hats y bajo; la melodía y los acordes se van cerrando                  |
+
+El orden es intro, estrofa, drop, puente, (a veces otra estrofa), drop y final, y cada sección dura 4 u 8
+compases redondeados a vueltas enteras de la gráfica. Con el cambio automático *todo (otra canción)*, la
+canción nueva empieza al terminar el final; si no, la estructura vuelve a empezar. En el secuenciador se
+atenúan las pistas que la sección deja calladas.
+
 ## Instrumentos
 
 Todo es síntesis, sin samples ([js/instruments.js](js/instruments.js)):
@@ -251,6 +271,7 @@ js/instruments.js instrumentos de la melodía
 js/drums.js       kits de batería
 js/audio.js       motor de audio (buses, distorsión, bombeo, bajos, build-up y drop, reverb, delay)
 js/chords.js      acordes: progresiones, reparto de voces, deslizamientos y espiral
+js/form.js        estructura de canción: secciones y qué suena en cada una
 js/plot.js        gráfica en canvas
 js/app.js         transporte sincronizado con el reloj de audio + interfaz
 ```
