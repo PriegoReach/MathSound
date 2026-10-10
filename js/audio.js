@@ -8,6 +8,7 @@
 //   acordes → chordIn (chordBus) → sección → duck ─┬→ master                    (voces de js/chords.js)
 //                                        └→ reverb
 // "sección" es un paso bajo y un volumen que cambian con la estructura de la canción (ver section).
+// Cada parte (batería, bajo, melodía, acordes) entra por una ganancia que la silencia (ver setAudible).
 // Estéreo: el delay va y vuelve entre izquierda y derecha, los hats y la percusión suenan un poco a los
 // lados, las voces de los acordes se reparten (ver stereo) y bombo, caja, bajo y melodía van al centro.
 // Los timbres de la melodía están en js/instruments.js y los kits de batería en js/drums.js.
@@ -51,6 +52,7 @@
       this.poles = new Map(); // filtros de un polo compartidos por salida (ver onePole)
       this.samples = {};      // tus sonidos (js/samples.js): pista → { buf, gain, root }
       this.useSamples = true; // si la batería usa tus sonidos en vez de los del kit
+      this.audible = { drums: true, bass: true, mel: true, chords: true }; // partes que suenan (silenciar / solo)
       this.kept = []; // nodos de notas ya programadas: { end, nodes } (ver keep / sweep)
       this.p = { melVol: 0.5, drive: 0, reverb: 0.35, delay: 0.25, drumVol: 0.8, bassVol: 0.6, chordVol: 0.5, bpm: 110 };
     }
@@ -116,7 +118,9 @@
       this.melSect = this.sectionStage(this.melBus, this.melDuck);
       this.melRev = gain(0, this.reverb); this.melDuck.connect(this.melRev);
       this.melDel = gain(0, this.delay); this.melDuck.connect(this.melDel);
-      this.melDrive = this.driveStage(this.melBus);
+      this.mutes = {}; // ganancia de cada parte: 1 suena, 0 silenciada
+      const part = (name, dest) => (this.mutes[name] = gain(this.audible[name] ? 1 : 0, dest));
+      this.melDrive = this.driveStage(part('mel', this.melBus));
       this.melIn = this.melDrive.input;
 
       this.drumBus = gain(0, this.master);
@@ -124,7 +128,7 @@
       this.drumTone = ctx.createBiquadFilter();
       this.drumTone.type = 'lowpass';
       this.drumTone.frequency.value = 20000;
-      this.drumTone.connect(this.drumBus);
+      this.drumTone.connect(part('drums', this.drumBus));
       this.drumDrive = this.driveStage(this.drumTone);
       this.drumIn = this.drumDrive.input;
       // hats y percusión un poco a los lados; bombo y caja al centro (ver drum)
@@ -142,7 +146,7 @@
       this.bassBus = gain(0);
       this.bassDuck = gain(1, this.master);
       this.bassBus.connect(this.bassDuck);
-      this.bassDrive = this.driveStage(this.bassBus);
+      this.bassDrive = this.driveStage(part('bass', this.bassBus));
       this.bassIn = this.bassDrive.input;
 
       // acordes: sin distorsión, con su propia reverb y el mismo bombeo del sidechain que la melodía
@@ -150,7 +154,7 @@
       this.chordDuck = gain(1, this.master);
       this.chordSect = this.sectionStage(this.chordBus, this.chordDuck);
       this.chordDuck.connect(gain(0.3, this.reverb));
-      this.chordIn = this.chordBus;
+      this.chordIn = part('chords', this.chordBus);
 
       this.noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
       const d = this.noiseBuf.getChannelData(0);
@@ -473,6 +477,13 @@
       src.stop(t + len + 0.08);
       this.keep(t + len + 0.1, src, g);
       return g;
+    }
+
+    // Silencia o deja sonar una parte ('drums', 'bass', 'mel', 'chords') con un fundido de unos 50 ms;
+    // va antes de la reverb y el delay, así sus colas también se apagan
+    setAudible(name, on) {
+      this.audible[name] = on;
+      if (this.ctx) this.mutes[name].gain.setTargetAtTime(on ? 1 : 0, this.now, 0.015);
     }
 
     pump(t, { level, release }) {

@@ -93,6 +93,25 @@
           </div>
         </div>
         <div id="grid" class="grid"></div>
+        <div class="parts" role="group" aria-label="Partes: silenciar o escuchar solas">
+          <span class="parts-label" title="M silencia una parte; S deja sonar solo las partes marcadas con S">Partes</span>
+          <div class="part" data-part="drums"><span>Batería</span>
+            <button class="btn small toggle" data-act="mute" aria-pressed="false" title="Silenciar la batería" aria-label="Silenciar la batería">M</button>
+            <button class="btn small toggle" data-act="solo" aria-pressed="false" title="Escuchar solo la batería" aria-label="Escuchar solo la batería">S</button>
+          </div>
+          <div class="part" data-part="bass"><span>Bajo</span>
+            <button class="btn small toggle" data-act="mute" aria-pressed="false" title="Silenciar el bajo" aria-label="Silenciar el bajo">M</button>
+            <button class="btn small toggle" data-act="solo" aria-pressed="false" title="Escuchar solo el bajo" aria-label="Escuchar solo el bajo">S</button>
+          </div>
+          <div class="part" data-part="mel"><span>Melodía</span>
+            <button class="btn small toggle" data-act="mute" aria-pressed="false" title="Silenciar la melodía" aria-label="Silenciar la melodía">M</button>
+            <button class="btn small toggle" data-act="solo" aria-pressed="false" title="Escuchar solo la melodía" aria-label="Escuchar solo la melodía">S</button>
+          </div>
+          <div class="part" data-part="chords"><span>Acordes</span>
+            <button class="btn small toggle" data-act="mute" aria-pressed="false" title="Silenciar los acordes" aria-label="Silenciar los acordes">M</button>
+            <button class="btn small toggle" data-act="solo" aria-pressed="false" title="Escuchar solo los acordes" aria-label="Escuchar solo los acordes">S</button>
+          </div>
+        </div>
         <div class="controls">
           <label>Tempo <output id="bpmOut"></output>
             <input type="range" id="bpm" min="60" max="200" step="1"></label>

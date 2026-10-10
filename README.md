@@ -103,6 +103,14 @@ Menos en el modo 808, la línea aparece como fila **Bajo** en el secuenciador y 
 **Humanizar** (en *Beat*) mueve un poco el tiempo y la fuerza de cada golpe y cada nota, como al tocar
 en vivo.
 
+### Partes: silenciar y solo
+
+Debajo del secuenciador, **Partes** tiene un par de botones para la batería, el bajo, la melodía y los
+acordes: **M** silencia esa parte y **S** deja sonar solo esa (puedes marcar varias S; mientras haya
+alguna, las M no cuentan). Por ejemplo, S en *Acordes* para escuchar solo los acordes. Las pistas que no
+suenan se atenúan en el secuenciador, y lo silenciado tampoco sale al exportar a WAV, así que sirve para
+sacar cada parte por separado.
+
 ### Build-up y drop
 
 El botón **Build-up y drop** (tecla D) hace dos compases de tensión desde el próximo compás: un redoble

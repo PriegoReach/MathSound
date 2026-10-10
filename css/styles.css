@@ -313,6 +313,16 @@ h2 { font-size: 1rem; font-weight: 600; line-height: 1.3; }
 .track.is-muted { opacity: .35; } /* callada por la sección de la canción */
 
 .beat .controls { margin-top: 1.25rem; }
+
+/* partes: M silencia (rojo), S deja sonar solo esa (azul); el nombre se atenúa si no suena */
+.parts { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.25rem; margin-top: 1rem; font-size: .875rem; }
+.parts-label { color: var(--grafito); font: 500 .8125rem var(--font-ui-narrow); cursor: help; }
+.part { display: inline-flex; align-items: center; gap: .3rem; }
+.part > span { margin-right: .15rem; font-weight: 500; }
+.part.is-silent > span { color: var(--grafito); text-decoration: line-through; }
+.btn.toggle { width: 1.9rem; padding: 0; font-weight: 600; }
+.btn.toggle[data-act=mute][aria-pressed=true] { background: var(--rojo); border-color: var(--rojo); color: var(--sobre-pluma); }
+.btn.toggle[data-act=solo][aria-pressed=true] { background: var(--azul); border-color: var(--azul); color: var(--sobre-pluma); }
 .options { display: flex; flex-wrap: wrap; gap: .6rem 1.75rem; margin-top: 1.1rem; }
 
 /* ---------- Panel de ajustes ---------- */

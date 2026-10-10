@@ -789,8 +789,9 @@
       [...strip.children].forEach((li, i) => li.classList.toggle('now', i === index));
       formShown.index = index;
     }
-    const mix = mixOf(sec);
-    const muted = ROWS.filter((tr) => (tr === 'bass' ? !mix.bass : tr === 'mel' ? !mix.mel : !mix.drums.includes(tr)));
+    const mix = mixOf(sec), on = engine.audible; // calladas por la sección o silenciadas con M / S
+    const muted = ROWS.filter((tr) => (tr === 'bass' ? !mix.bass || !on.bass : tr === 'mel' ? !mix.mel || !on.mel
+      : !mix.drums.includes(tr) || !on.drums));
     const mute = muted.join();
     if (mute !== formShown.mute) {
       for (const tr of ROWS) rowEls[tr].classList.toggle('is-muted', muted.includes(tr));
@@ -1036,6 +1037,7 @@
     E.setKit(kitKey());
     E.setBassMode(bassModeNow());
     E.samples = engine.samples;
+    for (const [p, on] of Object.entries(engine.audible)) E.setAudible(p, on); // lo silenciado tampoco sale en el WAV
     E.useSamples = engine.useSamples;
     E.setInstrument(state.instrument);
 
@@ -1088,6 +1090,22 @@
       exporting = false;
       setLabel('btnWav', 'Exportar WAV');
       $('btnWav').disabled = false;
+    }
+  }
+
+  // ======================= Partes: silenciar y solo =======================
+  // M silencia una parte; S deja sonar solo las partes marcadas con S (si hay alguna, las M no cuentan)
+  const PARTS = ['drums', 'bass', 'mel', 'chords'];
+  const parts = { mute: {}, solo: {} };
+
+  function applyParts() {
+    const anySolo = PARTS.some((p) => parts.solo[p]);
+    for (const p of PARTS) {
+      const on = anySolo ? !!parts.solo[p] : !parts.mute[p];
+      engine.setAudible(p, on);
+      const el = document.querySelector(`.part[data-part="${p}"]`);
+      el.classList.toggle('is-silent', !on);
+      for (const b of el.querySelectorAll('button')) b.setAttribute('aria-pressed', String(!!parts[b.dataset.act][p]));
     }
   }
 
@@ -1304,6 +1322,13 @@
     window.addEventListener('hashchange', loadHash);
     on('sampleFile', 'change', (e) => { const f = e.target.files[0]; e.target.value = ''; if (f && pickSlot) loadSample(pickSlot, f); });
     on('samplesOn', 'change', (e) => { engine.useSamples = e.target.checked; renderSamples(); });
+    for (const b of document.querySelectorAll('.part button')) {
+      b.addEventListener('click', () => {
+        const p = b.closest('.part').dataset.part, act = b.dataset.act;
+        parts[act][p] = !parts[act][p];
+        applyParts();
+      });
+    }
     on('samplesSection', 'dragover', (e) => e.preventDefault());
     on('samplesSection', 'drop', (e) => { e.preventDefault(); dropSamples([...e.dataTransfer.files]); });
     on('btnRandFn', 'click', randomFn);
@@ -1390,7 +1415,7 @@
   }
 
   // acceso desde la consola del navegador para experimentar / depurar
-  MS.app = { state, sch, engine, plot, chordLayer, bank, loadSample, dropSamples, sectionAt, songData, applySong, exportWav, tick, play, pause, restart, setMode, setInstrument, setFunction, setChords, setForm,
+  MS.app = { state, sch, engine, plot, chordLayer, bank, parts, applyParts, loadSample, dropSamples, sectionAt, songData, applySong, exportWav, tick, play, pause, restart, setMode, setInstrument, setFunction, setChords, setForm,
     newBeat, newSong, randomFn, randomAll, requestBuild, bassSteps };
 
   // ======================= Inicio =======================
