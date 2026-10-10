@@ -23,6 +23,18 @@ Pulsa **Reproducir** (el navegador exige un clic antes de permitir sonido).
 | C        | acordes sí o no                                               |
 | Inicio   | volver al principio                                           |
 
+### Guardar, compartir y exportar
+
+- **Exportar WAV** (arriba, junto a *Grabar*) calcula la canción sin reproducirla y la descarga en WAV
+  de 16 bits: en modo canción, la estructura entera; en bucle, unos 45 segundos con un fundido al final.
+  Tarda unos segundos (bastante menos que la canción) y mientras tanto se puede seguir usando la página.
+  Durante la exportación no hay cambios automáticos: sale la canción que está puesta.
+- En **Canción** (al final del panel): **Guardar** descarga la canción en un archivo `.json` (función,
+  beat con tus cambios, sonido, acordes, estructura y mezcla), **Abrir** la carga y **Copiar enlace**
+  copia un enlace que la abre al instante. El enlace lleva la canción dentro (comprimida, menos de 1 KB),
+  así que sirve en esta copia de MathSound o en la web si la publicas.
+- *Grabar* sigue grabando en tiempo real lo que suena (con todos los cambios que hagas mientras).
+
 ### La gráfica
 
 Es también una pauta: las líneas horizontales son las notas de la escala elegida (con su nombre a la
@@ -275,6 +287,7 @@ js/drums.js       kits de batería
 js/audio.js       motor de audio (buses, distorsión, bombeo, bajos, build-up y drop, reverb, delay)
 js/chords.js      acordes: progresiones, reparto de voces, deslizamientos y espiral
 js/form.js        estructura de canción: secciones y qué suena en cada una
+js/song.js        guardar y abrir canciones, enlaces y WAV
 js/plot.js        gráfica en canvas
 js/app.js         transporte sincronizado con el reloj de audio + interfaz
 ```

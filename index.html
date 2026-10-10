@@ -19,6 +19,7 @@
     <symbol id="i-start" viewBox="0 0 16 16"><path d="M3.6 3v10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M13 3v10L5.6 8z" fill="currentColor"/></symbol>
     <symbol id="i-dice" viewBox="0 0 16 16"><rect x="2" y="2" width="12" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="5.4" cy="5.4" r="1.15" fill="currentColor"/><circle cx="8" cy="8" r="1.15" fill="currentColor"/><circle cx="10.6" cy="10.6" r="1.15" fill="currentColor"/></symbol>
     <symbol id="i-rec" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4.5" fill="currentColor"/></symbol>
+    <symbol id="i-down" viewBox="0 0 16 16"><path d="M8 2.5v8M4.6 7.4 8 10.8l3.4-3.4M3 13.5h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   </svg>
 
   <header class="topbar">
@@ -50,6 +51,10 @@
       <button id="btnRec" class="btn rec" title="Graba lo que suena y lo descarga como audio">
         <svg class="i" aria-hidden="true"><use href="#i-rec"/></svg>
         <span>Grabar</span>
+      </button>
+      <button id="btnWav" class="btn" title="Calcula la canción sin reproducirla y la descarga en WAV: en modo canción, la estructura entera; en bucle, unos 45 segundos">
+        <svg class="i" aria-hidden="true"><use href="#i-down"/></svg>
+        <span>Exportar WAV</span>
       </button>
     </div>
   </header>
@@ -235,6 +240,18 @@
         <label class="check"><input type="checkbox" id="bw"> Blanco y negro: fondo blanco, trazo negro, sin pauta</label>
       </section>
 
+      <section aria-labelledby="hSong">
+        <h2 id="hSong">Canción</h2>
+        <div class="row">
+          <button id="btnSave" class="btn grow" title="Descarga la canción en un archivo .json">Guardar</button>
+          <button id="btnOpen" class="btn grow" title="Abre un archivo .json guardado antes">Abrir</button>
+          <button id="btnLink" class="btn grow" title="Copia un enlace que abre esta canción">Copiar enlace</button>
+        </div>
+        <input type="file" id="songFile" accept=".json,application/json" hidden>
+        <p class="hint" id="songMsg" role="status">Guarda la función, el beat, el sonido, los acordes, la estructura y la mezcla.
+          El enlace abre la canción en esta copia de MathSound (o en la web, si la publicas).</p>
+      </section>
+
       <section class="keys" aria-labelledby="hKeys">
         <h2 id="hKeys">Atajos de teclado</h2>
         <dl>
@@ -261,6 +278,7 @@
   <script defer src="js/audio.js"></script>
   <script defer src="js/chords.js"></script>
   <script defer src="js/form.js"></script>
+  <script defer src="js/song.js"></script>
   <script defer src="js/plot.js"></script>
   <script defer src="js/app.js"></script>
 </body>

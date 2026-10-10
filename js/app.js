@@ -13,9 +13,10 @@
   const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
   const setLabel = (id, text) => { $(id).querySelector('span').textContent = text; };
 
-  const engine = new MS.Engine();
+  // motor de audio y capa de acordes: al exportar a WAV se cambian un momento por unos sin altavoces
+  let engine = new MS.Engine();
   const plot = new MS.Plot($('plot'));
-  const chordLayer = new CH.ChordLayer(engine);
+  let chordLayer = new CH.ChordLayer(engine);
 
   const state = {
     xMin: -8, xMax: 8, xPerBeat: 1,
@@ -403,8 +404,12 @@
     engine.sweep(); // libera los nodos de las notas que ya terminaron
     const now = engine.now;
     // en segundo plano el navegador frena los timers: programamos más adelante
-    const horizon = now + (document.hidden ? 1.5 : LOOKAHEAD);
-    // tope de pasos por tick: con un tempo inválido nunca debe colgar la página
+    scheduleUntil(now + (document.hidden ? 1.5 : LOOKAHEAD), now);
+  }
+
+  // Programa los pasos y la melodía que suenan antes de `horizon` (segundos del reloj de audio)
+  function scheduleUntil(horizon, now) {
+    // tope de pasos por llamada: con un tempo inválido nunca debe colgar la página
     for (let guard = 0; guard < 64; guard++) {
       const s = sch.nextStep;
       const sb = s / 4 + (s % 2 ? state.swing / 4 : 0);
@@ -422,28 +427,34 @@
     }
   }
 
-  function play() {
-    engine.ensure();
-    sch.anchorTime = engine.now + 0.08;
-    sch.anchorBeat = sch.startBeat = sch.pausedBeat;
-    sch.nextStep = Math.ceil(sch.pausedBeat * 4 - 1e-9);
-    sch.melT = sch.anchorTime;
-    sch.startPass = passOf(sch.pausedBeat);
+  // Deja el transporte listo para que el pulso `fromBeat` suene en el instante `at`
+  function resetTransport(fromBeat, at) {
+    sch.anchorTime = at;
+    sch.anchorBeat = sch.startBeat = fromBeat;
+    sch.nextStep = Math.ceil(fromBeat * 4 - 1e-9);
+    sch.melT = at;
+    sch.startPass = passOf(fromBeat);
     sch.fnByPass.clear();
     sch.fnByPass.set(sch.startPass, state.fn);
     sch.lastNote = sch.lastSlot = null;
     sch.events = [];
+    sch.build = null;
     sch.chord = null;
     sch.chordLog = [];
     sch.chordFrom = null;
     sch.melFrom = 0;
     sch.secKey = null;
-    if (sch.pausedBeat === 0) { chordLayer.clear(); sch.songStart = 0; } // la canción vuelve a la intro
+    if (fromBeat === 0) { chordLayer.clear(); sch.songStart = 0; } // la canción vuelve a la intro
     // intro de los acordes: dos compases de espiral sin batería ni melodía y, en el drop, el primer acorde
-    if (state.chords && state.chordIntro && sch.pausedBeat === 0) {
+    if (state.chords && state.chordIntro && fromBeat === 0) {
       sch.build = { start: 0, end: 8, scheduled: false, intro: true };
       sch.melFrom = timeAtBeat(8);
     }
+  }
+
+  function play() {
+    engine.ensure();
+    resetTransport(sch.pausedBeat, engine.now + 0.08);
     sch.playing = true;
     tick();
     sch.timer = setInterval(tick, 25);
@@ -905,6 +916,177 @@
     if (!sch.playing) play();
   }
 
+  // ======================= Guardar, compartir y exportar =======================
+  // Lo que define una canción (la vista no: líneas, blanco y negro…)
+  const SONG_KEYS = ['xMin', 'xMax', 'xPerBeat', 'bpm', 'swing', 'style', 'mode', 'sub', 'scale', 'tonic', 'octave', 'range',
+    'instrument', 'kit', 'arp', 'bass', 'bassMode', 'beatTempo', 'humanize', 'songGenre', 'chords', 'chordProg', 'chordRich',
+    'chordVoices', 'chordBars', 'chordInst', 'chordVoicing', 'chordIntro', 'chordMel', 'form'];
+
+  function songData() {
+    return {
+      app: 'MathSound', v: MS.SONG.VERSION,
+      fn: { text: state.fn.text, name: state.fn.name, hue: state.fn.hue },
+      state: Object.fromEntries(SONG_KEYS.map((k) => [k, state[k]])),
+      mix: Object.fromEntries(SLIDERS.map((k) => [k, engine.p[k]])),
+      pattern: state.pattern,
+      arr: sch.arr,
+    };
+  }
+
+  // Carga una canción guardada (archivo o enlace). Los datos vienen de fuera: se comprueban y lo que no
+  // es válido se ignora; si la función no se puede leer, no se cambia nada.
+  function applySong(d) {
+    if (!d || d.app !== 'MathSound' || typeof d.fn?.text !== 'string' || d.fn.text.length > 2000) throw new Error('No es una canción de MathSound');
+    const st = MS.SONG.cleanState(d.state);
+    const xMin = st.xMin ?? state.xMin, xMax = st.xMax ?? state.xMax;
+    const fn = expr.makeFunction(expr.parse(d.fn.text), { name: typeof d.fn.name === 'string' ? d.fn.name.slice(0, 80) : 'Canción guardada' }, xMin, xMax);
+    fn.hue = Number.isFinite(d.fn.hue) ? d.fn.hue : Math.floor(Math.random() * 360);
+    const was = sch.playing;
+    if (was) pause();
+    Object.assign(state, st);
+    const mix = MS.SONG.cleanMix(d.mix, SLIDERS);
+    for (const k of Object.keys(mix)) engine.set(k, mix[k]);
+    const P = MS.SONG.cleanPattern(d.pattern);
+    state.pattern = P || beats.randomBeat(state.style);
+    if (!P) state.bpm = st.bpm ?? state.pattern.bpm;
+    sch.arr = MS.SONG.cleanArrangement(d.arr) || FORM.arrangement(genreOf()?.drops !== false);
+    setTempo(state.bpm);
+    setSwing(state.swing);
+    setInstrument(state.instrument);
+    setMode(state.mode);
+    setChords(state.chords);
+    applyKit();
+    setFunction(fn);
+    sch.pausedBeat = 0;
+    setForm(state.form);
+    shownFn = null;
+    $('presetSel').value = '';
+    syncUI();
+    if (was) play();
+  }
+
+  const songMsg = (text) => { $('songMsg').textContent = text; };
+  // Motivo de un error para el usuario: los nuestros ya vienen en español; los del navegador (JSON roto,
+  // datos comprimidos dañados…) llegan en inglés y se resumen
+  const why = (err) => (err?.constructor === Error ? err.message : 'el contenido está dañado o incompleto');
+
+  function saveSong() {
+    const blob = new Blob([JSON.stringify(songData(), null, 1)], { type: 'application/json' });
+    MS.SONG.download(blob, MS.SONG.fileName(state.songGenre, 'json'));
+    songMsg('Canción guardada en tus descargas.');
+  }
+
+  async function openSong(file) {
+    try {
+      if (file.size > MS.SONG.MAX_BYTES) throw new Error('El archivo es demasiado grande');
+      applySong(JSON.parse(await file.text()));
+      songMsg(`Abierta: ${file.name}`);
+    } catch (err) {
+      songMsg('No se pudo abrir: ' + why(err) + '.');
+    }
+  }
+
+  // Enlace con la canción después de "#": al abrirlo, se carga sola
+  async function copyLink() {
+    const url = location.href.split('#')[0] + '#' + (await MS.SONG.toHash(songData()));
+    history.replaceState(null, '', url);
+    try {
+      await navigator.clipboard.writeText(url);
+      songMsg('Enlace copiado. Abre esta canción en esta copia de MathSound (o donde la publiques).');
+    } catch {
+      songMsg('El enlace con la canción está en la barra de direcciones: cópialo desde ahí.');
+    }
+  }
+
+  async function loadHash() {
+    if (!/^#[cz]=/.test(location.hash)) return;
+    try {
+      applySong(await MS.SONG.fromHash(location.hash));
+      songMsg('Canción cargada desde el enlace.');
+    } catch (err) {
+      songMsg('El enlace no tiene una canción válida: ' + why(err) + '.');
+    }
+  }
+
+  // Exportar a WAV: la canción se calcula sin altavoces (OfflineAudioContext), con el mismo programador
+  // de pasos que al reproducir. En modo canción, la estructura entera; en bucle, unos 45 s con fundido.
+  // Durante el cálculo no hay cambios automáticos: suena la canción que está puesta.
+  // Como al reproducir, se programa poco a poco: el cálculo se detiene cada segundo (suspend), se programa
+  // el tramo siguiente y se sueltan los nodos que ya sonaron. Programarlo todo de golpe dejaba miles de
+  // nodos conectados desde el principio y el cálculo iba muy lento.
+  let exporting = false;
+  async function exportWav() {
+    if (exporting) return;
+    exporting = true;
+    pause();
+    setLabel('btnWav', 'Calculando…');
+    $('btnWav').disabled = true;
+    const SR = 44100, START = 0.1, TAIL = 3, AHEAD = 1.5, bpp = beatsPerPass(), passSec = (bpp * 60) / state.bpm;
+    const song = state.form === 'song';
+    const passes = song ? FORM.totalPasses(sch.arr, bpp) : Math.max(2, Math.min(16, Math.ceil(45 / passSec)));
+    const length = Math.min(300, passes * passSec); // segundos de música (máximo 5 minutos)
+    const end = START + length;
+    const off = new OfflineAudioContext(2, Math.ceil(SR * (end + TAIL)), SR);
+    const E = new MS.Engine();
+    E.p = { ...engine.p };
+    E.instrument = state.instrument;
+    E.ensure(off);
+    E.setKit(kitKey());
+    E.setBassMode(bassModeNow());
+    E.setInstrument(state.instrument);
+
+    // El programador usa `engine`, `chordLayer` y `sch`: en cada tramo se cambian por los de la exportación
+    // y luego se devuelven, así lo que suene en vivo mientras tanto no se mezcla con lo exportado.
+    const X = { engine: E, chordLayer: new CH.ChordLayer(E), sch: null };
+    const copy = () => ({ ...sch, fnByPass: new Map(sch.fnByPass) });
+    let done = START;
+    const chunk = () => {
+      const live = { engine, chordLayer, sch: copy(), auto: state.auto };
+      try {
+        engine = X.engine;
+        chordLayer = X.chordLayer;
+        state.auto = '';
+        if (X.sch) Object.assign(sch, X.sch); else resetTransport(0, START);
+        const to = Math.min(end, Math.max(done, E.now) + AHEAD);
+        scheduleUntil(to, E.now);
+        done = to;
+        engine.sweep(); // suelta los nodos que ya sonaron
+        if (to >= end && !X.ended) {
+          X.ended = true;
+          engine.stopGlide(end);
+          chordLayer.stop(end, passes * bpp);
+          if (!song) { // fundido final del bucle
+            E.master.gain.setValueAtTime(0.9, Math.max(START, end - 2.5));
+            E.master.gain.linearRampToValueAtTime(0, end);
+          }
+        }
+        X.sch = copy();
+      } finally {
+        engine = live.engine;
+        chordLayer = live.chordLayer;
+        Object.assign(sch, live.sch);
+        state.auto = live.auto;
+      }
+    };
+    chunk();
+    for (let t = START + 0.5; t < end; t += 1) {
+      off.suspend(t).then(() => {
+        try { chunk(); } finally { off.resume(); }
+      });
+    }
+    try {
+      const buf = await off.startRendering();
+      MS.SONG.download(MS.SONG.wavBlob(buf), MS.SONG.fileName(state.songGenre, 'wav'));
+      songMsg(`WAV exportado: ${Math.round(buf.duration)} s.`);
+    } catch (err) {
+      songMsg('No se pudo exportar: ' + why(err) + '.');
+    } finally {
+      exporting = false;
+      setLabel('btnWav', 'Exportar WAV');
+      $('btnWav').disabled = false;
+    }
+  }
+
   // ======================= Interfaz =======================
   function fillSelect(el, items) {
     el.innerHTML = '';
@@ -1014,6 +1196,12 @@
     on('btnRestart', 'click', restart);
     on('btnAllRandom', 'click', randomAll);
     on('btnRec', 'click', toggleRec);
+    on('btnWav', 'click', exportWav);
+    on('btnSave', 'click', saveSong);
+    on('btnOpen', 'click', () => $('songFile').click());
+    on('songFile', 'change', (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) openSong(f); });
+    on('btnLink', 'click', copyLink);
+    window.addEventListener('hashchange', loadHash);
     on('btnRandFn', 'click', randomFn);
     on('btnRandBeat', 'click', () => newBeat());
     on('btnApply', 'click', applyTyped);
@@ -1098,7 +1286,7 @@
   }
 
   // acceso desde la consola del navegador para experimentar / depurar
-  MS.app = { state, sch, engine, plot, chordLayer, sectionAt, tick, play, pause, restart, setMode, setInstrument, setFunction, setChords, setForm,
+  MS.app = { state, sch, engine, plot, chordLayer, sectionAt, songData, applySong, exportWav, tick, play, pause, restart, setMode, setInstrument, setFunction, setChords, setForm,
     newBeat, newSong, randomFn, randomAll, requestBuild, bassSteps };
 
   // ======================= Inicio =======================
@@ -1110,4 +1298,5 @@
   syncUI();
   applyKit();
   requestAnimationFrame(frame);
+  loadHash(); // si se abrió un enlace con una canción
 })(globalThis.MS = globalThis.MS || {});
