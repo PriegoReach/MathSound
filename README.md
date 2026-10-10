@@ -270,7 +270,25 @@ saturación y un realce de graves entre 50 y 60 Hz.
 Puedes fijar un kit para cualquier estilo con el selector **Kit de batería**.
 
 Son aproximaciones sintetizadas: los nombres describen el carácter del sonido, no emulaciones exactas de
-las máquinas originales (ni de otros grupos). Toda la batería es síntesis con Web Audio, sin samples.
+las máquinas originales (ni de otros grupos). Toda la batería es síntesis con Web Audio, sin samples,
+salvo que cargues los tuyos.
+
+## Tus sonidos
+
+En **Tus sonidos** (panel) puedes cargar archivos de audio propios (WAV, MP3, OGG… lo que sepa leer el
+navegador) en lugar de los sintetizados ([js/samples.js](js/samples.js)):
+
+- **Batería**: una fila por golpe (bombo, caja, palmas, hi-hat, hat abierto, perc). Tu sonido sustituye
+  al del kit en esa pista, con el mismo paneo y el corte del hat abierto; en el secuenciador, esas pistas
+  llevan un punto. *La batería usa tus sonidos* permite volver al kit sin borrarlos.
+- **Melodía**: aparece el instrumento **Tu sonido (sampler)**, que transpone el archivo a cada nota de la
+  función. La nota base se detecta sola (se puede corregir en su fila). Es percusivo: en glissando sigue
+  la curva a golpes.
+- Puedes arrastrar un archivo sobre una fila, o varios sobre la sección: se reparten por el nombre
+  (*kick*, *snare*, *hat*, *open*, *clap*, *tom*…; lo que no encaja va a la melodía).
+- Se igualan al mismo volumen, se recortan (8 s la batería, 20 s la melodía; 20 MB por archivo como
+  máximo) y quedan **guardados en este navegador**. No viajan en los archivos ni en los enlaces de canción.
+- Úsalos solo si tienes derecho a hacerlo (grabaciones tuyas, packs con licencia que lo permita…).
 
 ## Estructura
 
@@ -288,6 +306,7 @@ js/audio.js       motor de audio (buses, distorsión, bombeo, bajos, build-up y 
 js/chords.js      acordes: progresiones, reparto de voces, deslizamientos y espiral
 js/form.js        estructura de canción: secciones y qué suena en cada una
 js/song.js        guardar y abrir canciones, enlaces y WAV
+js/samples.js     tus sonidos: carga, guardado en el navegador y sampler
 js/plot.js        gráfica en canvas
 js/app.js         transporte sincronizado con el reloj de audio + interfaz
 ```

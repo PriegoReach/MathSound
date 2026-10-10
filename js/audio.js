@@ -49,6 +49,8 @@
       this.kit = 'clasica';
       this.waves = {};
       this.poles = new Map(); // filtros de un polo compartidos por salida (ver onePole)
+      this.samples = {};      // tus sonidos (js/samples.js): pista → { buf, gain, root }
+      this.useSamples = true; // si la batería usa tus sonidos en vez de los del kit
       this.kept = []; // nodos de notas ya programadas: { end, nodes } (ver keep / sweep)
       this.p = { melVol: 0.5, drive: 0, reverb: 0.35, delay: 0.25, drumVol: 0.8, bassVol: 0.6, chordVol: 0.5, bpm: 110 };
     }
@@ -446,9 +448,31 @@
         }
       }
       this.hitIn = this.hitPans[type] || this.drumIn; // salida de los golpes de este tipo (paneo)
-      const g = K[type] && K[type](this, t, v);
+      const S = this.useSamples && this.samples[type]; // un sonido tuyo sustituye al del kit
+      const g = S ? this.sample(S, t, v, this.hitIn) : K[type] && K[type](this, t, v);
       this.hitIn = this.drumIn;
       if (type === 'open' && g) this.openHat = { g, t, end: t + 0.4 };
+    }
+
+    // Toca un sonido tuyo en t hacia `dest`: `rate` cambia la altura (2 = una octava arriba) y `dur` lo
+    // corta antes de que acabe, con un final de 60 ms. Devuelve su ganancia (para cortar el hat abierto).
+    sample(S, t, v, dest, rate = 1, dur = Infinity) {
+      const ctx = this.ctx, src = ctx.createBufferSource();
+      src.buffer = S.buf;
+      src.playbackRate.value = rate;
+      const full = S.buf.duration / rate, len = Math.min(dur, full);
+      const g = ctx.createGain();
+      g.gain.value = 0;
+      g.gain.setValueAtTime(v * S.gain, t);
+      if (len < full) {
+        g.gain.setValueAtTime(v * S.gain, t + len);
+        g.gain.linearRampToValueAtTime(0, t + len + 0.06);
+      }
+      src.connect(g).connect(dest);
+      src.start(t);
+      src.stop(t + len + 0.08);
+      this.keep(t + len + 0.1, src, g);
+      return g;
     }
 
     pump(t, { level, release }) {

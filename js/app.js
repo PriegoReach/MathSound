@@ -17,6 +17,8 @@
   let engine = new MS.Engine();
   const plot = new MS.Plot($('plot'));
   let chordLayer = new CH.ChordLayer(engine);
+  const bank = new MS.SAMPLES.SampleBank(); // tus sonidos (js/samples.js)
+  engine.samples = bank.slots;
 
   const state = {
     xMin: -8, xMax: 8, xPerBeat: 1,
@@ -1033,6 +1035,8 @@
     E.ensure(off);
     E.setKit(kitKey());
     E.setBassMode(bassModeNow());
+    E.samples = engine.samples;
+    E.useSamples = engine.useSamples;
     E.setInstrument(state.instrument);
 
     // El programador usa `engine`, `chordLayer` y `sch`: en cada tramo se cambian por los de la exportación
@@ -1087,6 +1091,101 @@
     }
   }
 
+  // ======================= Tus sonidos =======================
+  const samplesMsg = (text) => { $('samplesMsg').textContent = text; };
+  let pickSlot = null; // hueco al que va el archivo elegido con "Cargar"
+
+  // El instrumento "sampler" solo existe mientras hay un sonido de melodía
+  function updateSampler() {
+    if (bank.slots.mel) MS.INSTRUMENTS.sampler = MS.SAMPLES.SAMPLER;
+    else delete MS.INSTRUMENTS.sampler;
+    fillInstruments($('instrument'));
+    if (state.instrument === 'sampler' && !bank.slots.mel) setInstrument('synth');
+    $('instrument').value = state.instrument;
+  }
+
+  async function loadSample(slot, file) {
+    try {
+      const S = await bank.load(slot, file);
+      const label = MS.SAMPLES.SLOTS.find(([k]) => k === slot)[1];
+      samplesMsg(`${label}: ${file.name}` + (slot === 'mel' ? ` (nota base ${music.noteName(S.root)}; elige "Tu sonido" en Instrumento)` : '')
+        + (bank.saved ? '' : '. Este navegador no deja guardarlo: se perderá al cerrar la página.'));
+    } catch (err) {
+      samplesMsg(`No se pudo cargar ${file.name}: ${err.message}.`);
+    }
+    updateSampler();
+    renderSamples();
+  }
+
+  async function removeSample(slot) {
+    await bank.remove(slot);
+    updateSampler();
+    renderSamples();
+  }
+
+  function previewSample(slot) {
+    const S = bank.slots[slot];
+    if (!S) return;
+    engine.ensure();
+    engine.sample(S, engine.now + 0.03, 0.85, slot === 'mel' ? engine.melIn : engine.drumIn);
+  }
+
+  // Una fila por hueco: nombre, archivo, escuchar, nota base (melodía), quitar y cargar.
+  // Cada fila acepta un archivo arrastrado encima.
+  function renderSamples() {
+    const button = (text, fn, label) => {
+      const b = document.createElement('button');
+      b.className = 'btn small';
+      b.textContent = text;
+      if (label) { b.title = label; b.setAttribute('aria-label', label); }
+      b.addEventListener('click', fn);
+      return b;
+    };
+    $('samplesList').replaceChildren(...MS.SAMPLES.SLOTS.map(([slot, label]) => {
+      const S = bank.slots[slot];
+      const row = document.createElement('div');
+      row.className = 'sample-row' + (S ? ' loaded' : '');
+      const name = document.createElement('span');
+      name.className = 'sample-name';
+      name.textContent = label;
+      const file = document.createElement('span');
+      file.className = 'sample-file';
+      file.textContent = S ? S.name : slot === 'mel' ? 'sin sonido' : 'el del kit';
+      file.title = S ? S.name : '';
+      row.append(name, file);
+      if (S) {
+        row.append(button('▶', () => previewSample(slot), 'Escuchar ' + label.toLowerCase()));
+        if (slot === 'mel') {
+          const sel = document.createElement('select');
+          sel.setAttribute('aria-label', 'Nota base del sonido');
+          sel.title = 'Nota base: la que suena sin transponer';
+          for (let m = 36; m <= 84; m++) sel.append(new Option(music.noteName(m), m));
+          sel.value = S.root;
+          sel.addEventListener('change', () => bank.setRoot('mel', +sel.value));
+          row.append(sel);
+        }
+        row.append(button('×', () => removeSample(slot), 'Quitar ' + label.toLowerCase()));
+      }
+      row.append(button('Cargar', () => { pickSlot = slot; $('sampleFile').click(); }, 'Cargar un archivo para ' + label.toLowerCase()));
+      row.addEventListener('dragover', (e) => { e.preventDefault(); row.classList.add('over'); });
+      row.addEventListener('dragleave', () => row.classList.remove('over'));
+      row.addEventListener('drop', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        row.classList.remove('over');
+        if (e.dataTransfer.files[0]) loadSample(slot, e.dataTransfer.files[0]);
+      });
+      return row;
+    }));
+    // en el secuenciador, un punto en las pistas que suenan con tu sonido
+    for (const tr of beats.TRACKS) rowEls[tr].classList.toggle('has-sample', !!bank.slots[tr] && engine.useSamples);
+  }
+
+  // Varios archivos soltados sobre la sección: se reparten por el nombre (kick, snare, hat…)
+  async function dropSamples(files) {
+    for (const f of files) await loadSample(MS.SAMPLES.guessSlot(f.name), f);
+  }
+
   // ======================= Interfaz =======================
   function fillSelect(el, items) {
     el.innerHTML = '';
@@ -1118,6 +1217,7 @@
 
   // Instrumentos agrupados según puedan sostener el glissando o sean golpes
   function fillInstruments(el) {
+    el.replaceChildren();
     const groups = [['Sostenidos: glissando continuo', true], ['Percusivos: suenan a golpes', false]];
     for (const [label, sustain] of groups) {
       const g = document.createElement('optgroup');
@@ -1202,6 +1302,10 @@
     on('songFile', 'change', (e) => { const f = e.target.files[0]; e.target.value = ''; if (f) openSong(f); });
     on('btnLink', 'click', copyLink);
     window.addEventListener('hashchange', loadHash);
+    on('sampleFile', 'change', (e) => { const f = e.target.files[0]; e.target.value = ''; if (f && pickSlot) loadSample(pickSlot, f); });
+    on('samplesOn', 'change', (e) => { engine.useSamples = e.target.checked; renderSamples(); });
+    on('samplesSection', 'dragover', (e) => e.preventDefault());
+    on('samplesSection', 'drop', (e) => { e.preventDefault(); dropSamples([...e.dataTransfer.files]); });
     on('btnRandFn', 'click', randomFn);
     on('btnRandBeat', 'click', () => newBeat());
     on('btnApply', 'click', applyTyped);
@@ -1286,7 +1390,7 @@
   }
 
   // acceso desde la consola del navegador para experimentar / depurar
-  MS.app = { state, sch, engine, plot, chordLayer, sectionAt, songData, applySong, exportWav, tick, play, pause, restart, setMode, setInstrument, setFunction, setChords, setForm,
+  MS.app = { state, sch, engine, plot, chordLayer, bank, loadSample, dropSamples, sectionAt, songData, applySong, exportWav, tick, play, pause, restart, setMode, setInstrument, setFunction, setChords, setForm,
     newBeat, newSong, randomFn, randomAll, requestBuild, bassSteps };
 
   // ======================= Inicio =======================
@@ -1298,5 +1402,7 @@
   syncUI();
   applyKit();
   requestAnimationFrame(frame);
-  loadHash(); // si se abrió un enlace con una canción
+  renderSamples();
+  // tus sonidos guardados en este navegador y, después, la canción del enlace (que puede usar el sampler)
+  bank.restore().then(() => { updateSampler(); renderSamples(); }).finally(loadHash);
 })(globalThis.MS = globalThis.MS || {});

@@ -222,6 +222,16 @@
           Con «Build-up y drop» las voces se juntan en espiral y se abren en abanico en el drop.</p>
       </section>
 
+      <section id="samplesSection" aria-labelledby="hSamples">
+        <h2 id="hSamples">Tus sonidos</h2>
+        <p class="hint">Carga archivos de audio (WAV, MP3, OGG…) para la batería o para la melodía, o arrástralos
+          aquí: si sueltas varios, se reparten por el nombre (kick, snare, hat…). Se quedan guardados en este navegador.</p>
+        <div id="samplesList" class="samples"></div>
+        <label class="check"><input type="checkbox" id="samplesOn" checked> La batería usa tus sonidos en vez de los del kit</label>
+        <input type="file" id="sampleFile" accept="audio/*" hidden>
+        <p class="hint" id="samplesMsg" role="status"></p>
+      </section>
+
       <section aria-labelledby="hView">
         <h2 id="hView">Vista</h2>
         <div class="controls">
@@ -279,6 +289,7 @@
   <script defer src="js/chords.js"></script>
   <script defer src="js/form.js"></script>
   <script defer src="js/song.js"></script>
+  <script defer src="js/samples.js"></script>
   <script defer src="js/plot.js"></script>
   <script defer src="js/app.js"></script>
 </body>
