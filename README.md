@@ -145,7 +145,8 @@ En la pestaña **Acordes**:
   el grado de la nota que suena. Los grados se toman de la escala elegida (las pentatónicas y el blues usan
   la escala de 7 notas que las contiene).
 - **Notas**: tríadas, séptimas o novenas. **Voces**: 4, 6 o 9. **Cambio cada** ½, 1 o 2 compases.
-- **Sonido**: pad, sierra suave, supersaw, sintetizador, órgano, coro, seno, lead o chiptune, y su volumen.
+- **Sonido**: pad, cuerdas, sierra suave, supersaw, metales, sintetizador, órgano, coro, seno, lead o
+  chiptune, y su volumen.
 - **Las voces**: *quietas* (se mueven lo mínimo) o *siguen a la curva* (en cada pulso se
   agrupan alrededor de la nota de la función).
 - **Al empezar desde el principio**: dos compases de espiral, sin batería ni melodía, y el drop abre el
@@ -207,10 +208,11 @@ Todo es síntesis, sin samples ([js/instruments.js](js/instruments.js)):
 
 - **Sostenidos** (pueden hacer el glissando continuo): sintetizador suave, seno puro, sierra suave,
   lead sierra, chiptune de 8 bits, órgano, coro (voz "a" con formantes), silbido, ácido 303 (filtro que
-  barre cada semicorchea), 808 deslizante, supersaw (siete sierras desafinadas, trance y hardstyle) y pad
-  cálido.
-- **Percusivos**: cencerro phonk (cencerro 808 afinado), campana y piano eléctrico (síntesis FM), pluck,
-  marimba y piano suave. En modo glissando siguen la curva a golpes, uno por subdivisión.
+  barre cada semicorchea), 808 deslizante, supersaw (siete sierras desafinadas, trance y hardstyle), pad
+  cálido, cuerdas, metales y flauta.
+- **Percusivos**: cencerro phonk (cencerro 808 afinado), campana, piano eléctrico, kalimba, tambor de acero
+  y vibráfono (síntesis FM), pluck, clavinet, arpa, marimba y piano suave. En modo glissando siguen la
+  curva a golpes, uno por subdivisión.
 
 **Distorsión** satura la melodía; algunos instrumentos (cencerro, 808, ácido) ya traen un poco.
 

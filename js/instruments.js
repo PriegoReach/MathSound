@@ -273,6 +273,15 @@
     acid: { layers: [{ type: 'sawtooth' }], filter: { type: 'lowpass', f: 1300, q: 13 }, wah: 1000, level: 0.2, attack: 0.01 },
     sub808: { layers: [{ type: 'sine', ratio: 0.5 }, { type: 'triangle', ratio: 0.5, gain: 0.25 }], level: 0.33, attack: 0.01 },
     supersaw: { layers: SAWS([-28, -17, -8, 0, 8, 17, 28], 0.6), filter: { type: 'lowpass', f: 5500, q: 0.6 }, level: 0.2, attack: 0.01 },
+    // cuerdas: tres sierras desafinadas y abiertas, filtro suave y vibrato lento; entran despacio
+    strings: { layers: [{ type: 'sawtooth', detune: -10, pan: -0.45 }, { type: 'sawtooth', detune: 10, pan: 0.45 }, { type: 'sawtooth', gain: 0.6 }],
+      filter: { type: 'lowpass', f: 2800, q: 0.6 }, vibrato: 7, vibratoRate: 5.2, level: 0.22, attack: 0.25, release: 0.6 },
+    // metales: sierras y una cuadrada por un filtro algo resonante, ataque rápido
+    brass: { layers: [{ type: 'sawtooth' }, { type: 'square', gain: 0.4 }, { type: 'sawtooth', detune: 6, gain: 0.5, pan: 0.3 }],
+      filter: { type: 'lowpass', f: 2200, q: 1.4 }, vibrato: 4, vibratoRate: 5.5, level: 0.26, attack: 0.04, release: 0.15 },
+    // flauta: casi un seno, con un poco de segundo y tercer armónico, y vibrato
+    flute: { layers: [{ type: 'sine' }, { type: 'sine', ratio: 2, gain: 0.12 }, { type: 'triangle', ratio: 3, gain: 0.05 }],
+      vibrato: 16, vibratoRate: 5.3, level: 0.4, attack: 0.08, release: 0.12 },
     pad: { layers: [{ type: 'sawtooth', detune: -7, pan: -0.5 }, { type: 'sawtooth', detune: 7, pan: 0.5 }, { type: 'triangle', ratio: 0.5, gain: 0.6 }],
       filter: { type: 'lowpass', f: 1400, q: 0.5 }, vibrato: 4, vibratoRate: 4.2, level: 0.26, attack: 0.35, release: 0.9 },
   };
@@ -296,12 +305,23 @@
     supersaw: { name: 'Supersaw (trance, hardstyle)', sustain: true, voice: (E, t, f, o) => layered(E, t, f, SPEC.supersaw, o),
       hit: pluck({ layers: SAWS([-20, -8, 0, 8, 20], 1), level: 0.13, bright: 12, sweep: 0.6, maxDecay: 0.9 }) },
     pad: { name: 'Pad cálido (ambiental)', sustain: true, voice: (E, t, f, o) => layered(E, t, f, SPEC.pad, o), hit: held(SPEC.pad) },
+    strings: { name: 'Cuerdas', sustain: true, voice: (E, t, f, o) => layered(E, t, f, SPEC.strings, o), hit: held(SPEC.strings) },
+    brass: { name: 'Metales', sustain: true, voice: (E, t, f, o) => layered(E, t, f, SPEC.brass, o), hit: held(SPEC.brass) },
+    flute: { name: 'Flauta', sustain: true, voice: (E, t, f, o) => layered(E, t, f, SPEC.flute, o), hit: held(SPEC.flute) },
     cowbell: { name: 'Cencerro phonk', sustain: false, drive: 0.35, hit: cowbell },
     bell: { name: 'Campana', sustain: false, hit: fm({ ratio: 3.5, index: 4, indexDecay: 1.2, decay: 2.2, level: 0.6 }) },
     epiano: { name: 'Piano eléctrico', sustain: false, hit: fm({ ratio: 1, index: 1.8, indexDecay: 0.5, decay: 1.5, level: 0.63, tine: 14 }) },
     pluck: { name: 'Pluck', sustain: false, hit: pluck({ layers: [{ type: 'sawtooth' }, { type: 'square', detune: 5 }], level: 0.32, bright: 14, sweep: 0.35, maxDecay: 0.45 }) },
     marimba: { name: 'Marimba', sustain: false, hit: marimba },
     piano: { name: 'Piano suave', sustain: false, hit: piano },
+    // FM con un modulador inarmónico que se apaga enseguida: el golpe metálico de la lengüeta
+    kalimba: { name: 'Kalimba', sustain: false, hit: fm({ ratio: 6.97, index: 1.1, indexDecay: 0.06, decay: 1.4, level: 0.6 }) },
+    steelpan: { name: 'Tambor de acero', sustain: false, hit: fm({ ratio: 2, index: 1.3, indexDecay: 0.3, decay: 1.2, level: 0.55 }) },
+    vibes: { name: 'Vibráfono', sustain: false, hit: fm({ ratio: 4, index: 0.9, indexDecay: 0.5, decay: 2.4, level: 0.55 }) },
+    clavinet: { name: 'Clavinet', sustain: false,
+      hit: pluck({ layers: [{ type: 'square' }, { type: 'sawtooth', detune: 5 }], level: 0.26, bright: 18, q: 4, sweep: 0.25, maxDecay: 0.35 }) },
+    harp: { name: 'Arpa', sustain: false,
+      hit: pluck({ layers: [{ type: 'triangle' }, { type: 'triangle', ratio: 2, detune: 3 }], level: 0.5, bright: 7, q: 1, sweep: 1, maxDecay: 2.2 }) },
   };
 
   MS.INSTRUMENTS = INSTRUMENTS;

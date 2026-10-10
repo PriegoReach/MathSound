@@ -37,8 +37,8 @@
   };
   // Instrumentos sostenidos que suenan bien como acordes, y cuánto se bajan los que como acorde
   // suenan más fuertes que el resto (medido en RMS con varias voces)
-  const INSTS = ['pad', 'softSaw', 'supersaw', 'synth', 'organ', 'choir', 'sine', 'lead', 'chip'];
-  const TRIM = { pad: 0.85, supersaw: 0.85, synth: 0.55, organ: 0.65, choir: 0.7, sine: 0.5, lead: 0.8 };
+  const INSTS = ['pad', 'strings', 'softSaw', 'supersaw', 'brass', 'synth', 'organ', 'choir', 'sine', 'lead', 'chip'];
+  const TRIM = { pad: 0.85, supersaw: 0.85, synth: 0.55, organ: 0.65, choir: 0.7, sine: 0.5, lead: 0.8, brass: 0.7 };
 
   // Las escalas de 5 o 6 notas no forman acordes por terceras: se usa una de 7 notas que las contiene
   const PARENT = { 'Pentatónica menor': 'Menor natural', 'Pentatónica mayor': 'Mayor', 'Blues': 'Menor natural',
